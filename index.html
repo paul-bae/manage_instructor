@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>사외 강사 정보 관리</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+      font-size: 15px;
+      background: #f0f4ff;
+      color: #222;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* ─── Layout ────────────────────────────────────────────────── */
+    #app {
+      display: grid;
+      grid-template-columns: 20% 80%;
+      width: 100%;
+      height: 100vh;
+    }
+
+    /* ─── Left Panel ────────────────────────────────────────────── */
+    #left-panel {
+      background: linear-gradient(160deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      min-height: 100vh;
+    }
+
+    .left-header {
+      padding: 28px 20px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.15);
+    }
+
+    .left-header .app-logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .left-header .app-logo-area i {
+      font-size: 22px;
+      color: #fff;
+      opacity: 0.95;
+    }
+
+    .left-header .app-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      color: #fff;
+    }
+
+    .left-header .app-subtitle {
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+      margin-top: 4px;
+      padding-left: 2px;
+    }
+
+    /* Accordion Level 1 */
+    .nav-group {}
+
+    .nav-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.95);
+      letter-spacing: -0.2px;
+      transition: background 0.15s;
+      gap: 8px;
+    }
+
+    .nav-group-header .nav-group-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-group-header:hover { background: rgba(255,255,255,0.10); }
+
+    .nav-group-header .chevron {
+      font-size: 11px;
+      transition: transform 0.2s;
+      color: rgba(255,255,255,0.55);
+      flex-shrink: 0;
+    }
+
+    .nav-group-header.collapsed .chevron { transform: rotate(180deg); }
+
+    .nav-group-body {
+      overflow: hidden;
+      max-height: 500px;
+      transition: max-height 0.25s ease;
+    }
+
+    .nav-group-body.collapsed { max-height: 0; }
+
+    /* Accordion Level 2 */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 12px 20px 12px 28px;
+      cursor: pointer;
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: -0.2px;
+      border-left: 3px solid transparent;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+    }
+
+    .nav-item.active {
+      background: rgba(255,255,255,0.22);
+      color: #fff;
+      border-left-color: #fff;
+      font-weight: 600;
+    }
+
+    .nav-item i {
+      font-size: 13px;
+      opacity: 0.85;
+      flex-shrink: 0;
+    }
+
+    /* ─── Right Panel ───────────────────────────────────────────── */
+    #right-panel {
+      background: #f0f4ff;
+      overflow-y: auto;
+      padding: 32px 36px;
+    }
+
+    /* ─── Content Card ──────────────────────────────────────────── */
+    .content-card {
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(102,126,234,0.12);
+      overflow: hidden;
+    }
+
+    .content-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 28px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px 20px 0 0;
+    }
+
+    .content-card-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.4px;
+    }
+
+    .content-card-body { padding: 0; }
+
+    /* ─── Buttons ───────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 22px;
+      border: none;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s, transform 0.15s, box-shadow 0.15s;
+      letter-spacing: -0.2px;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.06);
+    }
+
+    .btn:active { transform: scale(0.98); }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(102,126,234,0.35);
+      border-radius: 10px;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 18px rgba(102,126,234,0.45);
+    }
+
+    .btn-success {
+      background: linear-gradient(90deg, #10b981, #059669);
+      color: #fff;
+      font-size: 15px;
+      padding: 12px 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(16,185,129,0.35);
+    }
+
+    .btn-success:hover {
+      box-shadow: 0 6px 18px rgba(16,185,129,0.45);
+    }
+
+    .btn-secondary {
+      background: #f1f3f5;
+      color: #6c757d;
+      border-radius: 10px;
+      box-shadow: none;
+    }
+
+    .btn-secondary:hover {
+      background: #e9ecef;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    /* ─── Form Table ────────────────────────────────────────────── */
+    .form-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .form-table tr:nth-child(odd) td { background: transparent; }
+    .form-table tr:nth-child(even) td { background: transparent; }
+
+    .form-table td {
+      padding: 0;
+      border: none;
+      vertical-align: middle;
+    }
+
+    .form-table .label-cell {
+      width: 140px;
+      min-width: 140px;
+      background: transparent !important;
+      padding: 10px 14px 10px 0;
+      font-weight: 600;
+      color: #5a4fcf;
+      text-align: right;
+      font-size: 13px;
+      white-space: nowrap;
+      border-right: none;
+    }
+
+    .form-table .label-cell .label-icon {
+      margin-right: 5px;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .form-table .label-cell .required {
+      color: #dc3545;
+      margin-left: 2px;
+    }
+
+    .form-table .input-cell {
+      padding: 8px 14px;
+    }
+
+    .form-table .full-width-cell {
+      padding: 8px 14px;
+    }
+
+    /* ─── Inputs ────────────────────────────────────────────────── */
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 7px 10px;
+      border: 1px solid #d0c8f0;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      color: #333;
+      background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.18);
+    }
+
+    .form-textarea {
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    /* ─── Image Preview ─────────────────────────────────────────── */
+    #image-preview-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    #image-preview {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid #e8e0ff;
+      display: none;
+    }
+
+    #image-preview.visible { display: block; }
+
+    #image-placeholder {
+      width: 150px;
+      height: 150px;
+      border: 2.5px dashed #c4b5fd;
+      border-radius: 12px;
+      background: #faf8ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #a78bfa;
+      font-size: 12px;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .file-input-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .file-hint { font-size: 11px; color: #a78bfa; }
+
+    /* ─── Privacy Consent ───────────────────────────────────────── */
+    .privacy-box {
+      margin: 0;
+      border: 1.5px solid #d6ccff;
+      border-radius: 12px;
+      background: #fdfcff;
+      overflow: hidden;
+    }
+
+    .privacy-box-header {
+      background: linear-gradient(90deg, #f0edff, #ede8ff);
+      padding: 12px 16px;
+      font-weight: 700;
+      font-size: 13px;
+      border-bottom: 1px solid #e0d8ff;
+      color: #5a4fcf;
+    }
+
+    .privacy-box-body {
+      padding: 14px 16px;
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: #444;
+      max-height: 220px;
+      overflow-y: auto;
+      background: #fdfcff;
+    }
+
+    .privacy-box-body ol { padding-left: 18px; margin: 6px 0; }
+    .privacy-box-body li { margin-bottom: 4px; }
+    .privacy-box-body ul { padding-left: 18px; }
+    .privacy-box-body ul li { list-style: disc; }
+
+    .privacy-check-row {
+      padding: 12px 16px;
+      border-top: 1px solid #e0d8ff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #f5f2ff;
+    }
+
+    .privacy-check-row label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #222;
+      cursor: pointer;
+    }
+
+    .privacy-check-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #667eea;
+    }
+
+    /* ─── Form Footer ───────────────────────────────────────────── */
+    .form-footer {
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      border-top: 1px solid #ede8ff;
+      background: #f8f6ff;
+    }
+
+    /* ─── VIEW Mode Table ───────────────────────────────────────── */
+    .view-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .view-table td {
+      border: none;
+      padding: 0;
+      vertical-align: middle;
+    }
+
+    .view-table tr:nth-child(odd) td { background: transparent; }
+    .view-table tr:nth-child(even) td { background: transparent; }
+
+    .view-table .view-label {
+      width: 140px;
+      min-width: 140px;
+      background: transparent !important;
+      padding: 10px 14px 10px 0;
+      font-weight: 600;
+      color: #5a4fcf;
+      text-align: right;
+      font-size: 13px;
+      white-space: nowrap;
+      border-right: none;
+    }
+
+    .view-table .view-value {
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    .view-table .view-value.multiline {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .view-profile-img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid #e8e0ff;
+    }
+
+    .consent-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .consent-badge.yes { background: #d1fae5; color: #065f46; }
+    .consent-badge.no  { background: #fee2e2; color: #991b1b; }
+
+    /* ─── Loading Spinner ───────────────────────────────────────── */
+    #spinner-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.70);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #spinner-overlay.active { display: flex; }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid #e8e0ff;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Toast Alerts ──────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      opacity: 0;
+      transform: translateX(30px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: auto;
+      max-width: 340px;
+      line-height: 1.45;
+      background: #fff;
+      border-left: 4px solid #667eea;
+      color: #222;
+    }
+
+    .toast.show { opacity: 1; transform: translateX(0); }
+    .toast.success { border-left-color: #10b981; }
+    .toast.error   { border-left-color: #ef4444; }
+    .toast.warning { border-left-color: #f59e0b; }
+
+    /* ─── Section divider ───────────────────────────────────────── */
+    .section-label {
+      background: linear-gradient(90deg, #f0edff, #f8f6ff);
+      padding: 10px 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #5a4fcf;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 1px solid #ede8ff;
+      border-top: 1px solid #ede8ff;
+    }
+
+    /* ─── Privacy View Document ─────────────────────────────────── */
+    .privacy-view-doc {
+      padding: 16px 20px 20px 160px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: #333;
+    }
+
+    .privacy-view-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #222;
+      margin-bottom: 8px;
+    }
+
+    .privacy-view-intro {
+      margin-bottom: 14px;
+      color: #444;
+    }
+
+    .privacy-view-section {
+      font-weight: 700;
+      font-size: 14px;
+      color: #222;
+      margin: 14px 0 4px;
+    }
+
+    .privacy-view-list {
+      list-style: disc;
+      padding-left: 48px;
+      color: #444;
+    }
+
+    .privacy-view-list li {
+      margin-bottom: 2px;
+    }
+
+    /* ─── Empty / Placeholder State ─────────────────────────────── */
+    .empty-state {
+      padding: 60px 24px;
+      text-align: center;
+      color: #a78bfa;
+    }
+
+    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; color: #9ca3af; }
+
+    /* ─── Responsive ────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+      #left-panel { min-height: auto; max-height: 220px; }
+      body { overflow: auto; height: auto; }
+    }
+
+    @media (max-width: 600px) {
+      #right-panel { padding: 16px 12px; }
+      .form-table .label-cell,
+      .view-table .view-label { width: 100px; min-width: 100px; font-size: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Spinner -->
+<div id="spinner-overlay" role="status" aria-live="polite" aria-label="로딩 중">
+  <div class="spinner"></div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+<!-- Main App Grid -->
+<div id="app">
+
+  <!-- ═══ LEFT PANEL ═══════════════════════════════════════════ -->
+  <nav id="left-panel" aria-label="주 메뉴">
+    <div class="left-header">
+      <div class="app-logo-area">
+        <i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i>
+        <div class="app-title">강사 관리 시스템</div>
+      </div>
+      <div class="app-subtitle">사외 강사 정보 관리 포털</div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-header" id="nav-group-toggle" role="button" tabindex="0"
+           aria-expanded="true" aria-controls="nav-group-body">
+        <span class="nav-group-label">
+          <i class="fa-solid fa-users-gear" aria-hidden="true"></i>
+          사외 강사 관리
+        </span>
+        <span class="chevron" aria-hidden="true">&#9650;</span>
+      </div>
+      <div class="nav-group-body" id="nav-group-body" role="list">
+        <div class="nav-item active" id="nav-register" role="listitem button" tabindex="0"
+             aria-current="page" onclick="handleNavRegister()">
+          <i class="fa-solid fa-id-card" aria-hidden="true"></i>
+          강사 등록
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ RIGHT PANEL ══════════════════════════════════════════ -->
+  <main id="right-panel" aria-label="콘텐츠 영역">
+
+    <!-- Content is injected here by JS -->
+    <div id="content-area">
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">📋</div>
+        <p>왼쪽 메뉴에서 항목을 선택하세요.</p>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+'use strict';
+
+/* ══════════════════════════════════════════════════════════════
+   Supabase Init
+══════════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://mcshhvttsvfurrkpcbdf.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jc2hodnR0c3ZmdXJya3BjYmRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODI5MDgsImV4cCI6MjA4OTU1ODkwOH0.FRlSXHknfnYoZ4i4-_up8QvppoKHGo50koK9yDkXPUQ';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ══════════════════════════════════════════════════════════════
+   State
+══════════════════════════════════════════════════════════════ */
+let currentMode = null; // 'view' | 'form' | 'edit'
+let currentData = null;
+let imageBase64 = null;
+
+/* ══════════════════════════════════════════════════════════════
+   Dropdown Data
+══════════════════════════════════════════════════════════════ */
+const NATIONALITIES = [
+  '대한민국','미국','중국','일본','영국','독일','프랑스',
+  '캐나다','호주','싱가포르','인도','태국','베트남','기타'
+];
+
+const GENDERS = ['남','여'];
+const INSTRUCTOR_TYPES = ['교수','저명인사','일반강사'];
+
+/* ══════════════════════════════════════════════════════════════
+   Utility: Spinner
+══════════════════════════════════════════════════════════════ */
+function showSpinner() {
+  document.getElementById('spinner-overlay').classList.add('active');
+}
+function hideSpinner() {
+  document.getElementById('spinner-overlay').classList.remove('active');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Utility: Toast
+══════════════════════════════════════════════════════════════ */
+function showToast(message, type = 'success', duration = 3500) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  toast.setAttribute('role', 'alert');
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Utility: Escape HTML
+══════════════════════════════════════════════════════════════ */
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Utility: Select Options HTML
+══════════════════════════════════════════════════════════════ */
+function buildOptions(list, selected) {
+  return list.map(v =>
+    `<option value="${esc(v)}"${selected === v ? ' selected' : ''}>${esc(v)}</option>`
+  ).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Left Menu: Accordion
+══════════════════════════════════════════════════════════════ */
+const navGroupToggle = document.getElementById('nav-group-toggle');
+const navGroupBody   = document.getElementById('nav-group-body');
+
+function toggleAccordion() {
+  const collapsed = navGroupBody.classList.toggle('collapsed');
+  navGroupToggle.classList.toggle('collapsed', collapsed);
+  navGroupToggle.setAttribute('aria-expanded', String(!collapsed));
+}
+
+navGroupToggle.addEventListener('click', toggleAccordion);
+navGroupToggle.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAccordion(); }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   Left Menu: Navigation
+══════════════════════════════════════════════════════════════ */
+function handleNavRegister() {
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.remove('active');
+    el.removeAttribute('aria-current');
+  });
+  const item = document.getElementById('nav-register');
+  item.classList.add('active');
+  item.setAttribute('aria-current', 'page');
+  loadInstructor();
+}
+
+document.getElementById('nav-register').addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavRegister(); }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   DB: Load Instructor
+══════════════════════════════════════════════════════════════ */
+async function loadInstructor() {
+  const id = localStorage.getItem('instructor_id');
+  if (!id) {
+    showForm(null);
+    return;
+  }
+  showSpinner();
+  try {
+    const { data, error } = await db
+      .from('instructors')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !data) {
+      localStorage.removeItem('instructor_id');
+      showForm(null);
+    } else {
+      showView(data);
+    }
+  } catch (err) {
+    showToast('데이터 로드 중 오류가 발생했습니다.', 'error');
+    showForm(null);
+  } finally {
+    hideSpinner();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DB: Save Instructor
+══════════════════════════════════════════════════════════════ */
+async function saveInstructor(formData) {
+  const id = localStorage.getItem('instructor_id');
+  showSpinner();
+  try {
+    let result;
+    if (id) {
+      result = await db
+        .from('instructors')
+        .update(formData)
+        .eq('id', id)
+        .select()
+        .single();
+    } else {
+      result = await db
+        .from('instructors')
+        .insert(formData)
+        .select()
+        .single();
+    }
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    if (result.data) {
+      localStorage.setItem('instructor_id', result.data.id);
+      showToast('강사 정보가 성공적으로 저장되었습니다.', 'success');
+      showView(result.data);
+    }
+  } catch (err) {
+    console.error('Save error:', err);
+    showToast('저장 중 오류가 발생했습니다: ' + (err.message || '알 수 없는 오류'), 'error');
+  } finally {
+    hideSpinner();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Privacy Consent HTML
+══════════════════════════════════════════════════════════════ */
+function privacyBoxHTML(checked = false) {
+  return `
+  <div class="privacy-box">
+    <div class="privacy-box-header">[ 개인정보 수집 및 이용 동의 ]</div>
+    <div class="privacy-box-body">
+      <p>회사는 사외 강사 등록 및 관리, 강의 운영을 위해 아래와 같이 개인정보를 수집·이용합니다.</p>
+      <br/>
+      <ol>
+        <li><strong>수집 항목</strong>
+          <ul>
+            <li>필수항목: 이름, 생년월일, 연락처(휴대전화번호, 이메일), 소속(회사/기관), 전문분야</li>
+            <li>선택항목: 경력사항, 이력서, 포트폴리오 등</li>
+          </ul>
+        </li>
+        <li><strong>수집 및 이용 목적</strong>
+          <ul>
+            <li>사외 강사 등록 및 본인 확인</li>
+            <li>강의 배정 및 운영 관리</li>
+            <li>강사료 지급 및 세무 처리</li>
+            <li>교육 품질 관리 및 커뮤니케이션</li>
+          </ul>
+        </li>
+        <li><strong>보유 및 이용 기간</strong>
+          <ul>
+            <li>강사 등록일로부터 계약 종료 후 3년까지 보관</li>
+            <li>관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관</li>
+          </ul>
+        </li>
+        <li><strong>동의 거부 권리 및 불이익 안내</strong>
+          <ul>
+            <li>이용자는 개인정보 수집 및 이용에 대한 동의를 거부할 권리가 있습니다.</li>
+            <li>단, 필수항목에 대한 동의 거부 시 사외 강사 등록을 제한할 수 있습니다.</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+    <div class="privacy-check-row">
+      <input type="checkbox" id="privacy_consent_check" name="privacy_consent_check"
+             ${checked ? 'checked' : ''} />
+      <label for="privacy_consent_check">개인정보 수집 및 이용에 동의합니다. (필수)</label>
+    </div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FORM Mode (new or edit)
+══════════════════════════════════════════════════════════════ */
+function showForm(prefill) {
+  currentMode = prefill ? 'edit' : 'form';
+  currentData = prefill;
+  imageBase64 = prefill ? prefill.profile_image || null : null;
+
+  const p = prefill || {};
+  const isEdit = !!prefill;
+
+  const html = `
+  <div class="content-card">
+    <div class="content-card-header">
+      <h2>${isEdit ? esc(p.instructor_name || '') + ' 사외강사 프로파일 수정' : '사외 강사 등록'}</h2>
+      ${isEdit ? `<button class="btn btn-secondary" onclick="showView(currentData)" type="button"><i class="fa-solid fa-xmark" aria-hidden="true"></i> 취소</button>` : ''}
+    </div>
+    <div class="content-card-body">
+      <form id="instructor-form" novalidate>
+
+        <!-- ── 기본 정보 ── -->
+        <div class="section-label">기본 정보</div>
+        <table class="form-table" role="presentation">
+          <colgroup>
+            <col style="width:140px"/>
+            <col/>
+            <col style="width:140px"/>
+            <col/>
+          </colgroup>
+
+          <tr>
+            <td class="label-cell">강사명<span class="required" aria-label="필수">*</span></td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="instructor_name" name="instructor_name"
+                     maxlength="100" required placeholder="강사명 입력"
+                     value="${esc(p.instructor_name || '')}" autocomplete="name" />
+            </td>
+            <td class="label-cell">강사영문명</td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="instructor_name_en" name="instructor_name_en"
+                     maxlength="100" placeholder="English Name"
+                     value="${esc(p.instructor_name_en || '')}" />
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label-cell">국적</td>
+            <td class="input-cell">
+              <select class="form-select" id="nationality" name="nationality">
+                <option value="">선택</option>
+                ${buildOptions(NATIONALITIES, p.nationality || '')}
+              </select>
+            </td>
+            <td class="label-cell">성별</td>
+            <td class="input-cell">
+              <select class="form-select" id="gender" name="gender">
+                <option value="">선택</option>
+                ${buildOptions(GENDERS, p.gender || '')}
+              </select>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label-cell">소속기관</td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="organization" name="organization"
+                     maxlength="100" placeholder="소속기관명"
+                     value="${esc(p.organization || '')}" />
+            </td>
+            <td class="label-cell">부서</td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="department" name="department"
+                     maxlength="100" placeholder="부서명"
+                     value="${esc(p.department || '')}" />
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label-cell">직급</td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="position" name="position"
+                     maxlength="100" placeholder="직급"
+                     value="${esc(p.position || '')}" />
+            </td>
+            <td class="label-cell">생년월일</td>
+            <td class="input-cell">
+              <input class="form-input" type="date" id="birth_date" name="birth_date"
+                     value="${esc(p.birth_date || '')}" />
+            </td>
+          </tr>
+
+          <!-- Full width: 회사주소 -->
+          <tr>
+            <td class="label-cell">회사주소</td>
+            <td class="full-width-cell" colspan="3">
+              <input class="form-input" type="text" id="company_address" name="company_address"
+                     maxlength="200" placeholder="회사 주소 입력"
+                     value="${esc(p.company_address || '')}" />
+            </td>
+          </tr>
+
+          <!-- Full width: 홈페이지 -->
+          <tr>
+            <td class="label-cell">홈페이지</td>
+            <td class="full-width-cell" colspan="3">
+              <input class="form-input" type="text" id="homepage" name="homepage"
+                     maxlength="200" placeholder="https://"
+                     value="${esc(p.homepage || '')}" />
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label-cell">이메일</td>
+            <td class="input-cell">
+              <input class="form-input" type="email" id="email" name="email"
+                     maxlength="100" placeholder="example@email.com"
+                     value="${esc(p.email || '')}" />
+            </td>
+            <td class="label-cell">회사전화</td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="company_phone" name="company_phone"
+                     maxlength="100" placeholder="02-0000-0000"
+                     value="${esc(p.company_phone || '')}" />
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label-cell">강사 유형</td>
+            <td class="input-cell">
+              <select class="form-select" id="instructor_type" name="instructor_type">
+                <option value="">선택</option>
+                ${buildOptions(INSTRUCTOR_TYPES, p.instructor_type || '')}
+              </select>
+            </td>
+            <td class="label-cell">핸드폰</td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="mobile_phone" name="mobile_phone"
+                     maxlength="100" placeholder="010-0000-0000"
+                     value="${esc(p.mobile_phone || '')}" />
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label-cell">최종 학력</td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="education" name="education"
+                     maxlength="100" placeholder="최종 학력"
+                     value="${esc(p.education || '')}" />
+            </td>
+            <td class="label-cell">전공</td>
+            <td class="input-cell">
+              <input class="form-input" type="text" id="major" name="major"
+                     maxlength="100" placeholder="전공"
+                     value="${esc(p.major || '')}" />
+            </td>
+          </tr>
+        </table>
+
+        <!-- ── 경력 및 역량 ── -->
+        <div class="section-label">경력 및 역량</div>
+        <table class="form-table" role="presentation">
+          <colgroup><col style="width:140px"/><col/></colgroup>
+
+          <tr>
+            <td class="label-cell">주요 경력</td>
+            <td class="full-width-cell">
+              <textarea class="form-textarea" id="career" name="career"
+                        maxlength="300" rows="4" placeholder="주요 경력을 입력하세요 (최대 300자)">${esc(p.career || '')}</textarea>
+            </td>
+          </tr>
+          <tr>
+            <td class="label-cell">전문 역량</td>
+            <td class="full-width-cell">
+              <textarea class="form-textarea" id="expertise" name="expertise"
+                        maxlength="300" rows="4" placeholder="전문 역량을 입력하세요 (최대 300자)">${esc(p.expertise || '')}</textarea>
+            </td>
+          </tr>
+          <tr>
+            <td class="label-cell">강의 분야</td>
+            <td class="full-width-cell">
+              <textarea class="form-textarea" id="lecture_field" name="lecture_field"
+                        maxlength="300" rows="4" placeholder="강의 분야를 입력하세요 (최대 300자)">${esc(p.lecture_field || '')}</textarea>
+            </td>
+          </tr>
+        </table>
+
+        <!-- ── 강사 사진 ── -->
+        <div class="section-label">강사 사진</div>
+        <table class="form-table" role="presentation">
+          <colgroup><col style="width:140px"/><col/></colgroup>
+          <tr>
+            <td class="label-cell">강사 사진</td>
+            <td class="full-width-cell">
+              <div id="image-preview-wrap">
+                <div id="image-placeholder" class="${imageBase64 ? 'hidden' : ''}">
+                  <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color:#c4b5fd" aria-hidden="true"></i>
+                  <span>사진 없음</span>
+                </div>
+                <img id="image-preview" class="${imageBase64 ? 'visible' : ''}"
+                     src="${imageBase64 ? esc(imageBase64) : ''}"
+                     alt="강사 사진 미리보기" />
+                <div class="file-input-wrap">
+                  <input class="form-input" type="file" id="profile_image" name="profile_image"
+                         accept="image/*" style="padding:4px;" />
+                  <span class="file-hint">JPG, PNG, GIF 등 이미지 파일 (미리보기 후 저장 시 DB에 저장됩니다)</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+        <!-- ── 개인정보 동의 ── -->
+        <div class="section-label">개인정보 동의</div>
+        ${privacyBoxHTML(p.privacy_consent === 'Y')}
+
+        <!-- ── Footer ── -->
+        <div class="form-footer">
+          <button class="btn btn-success" type="submit" id="save-btn">
+            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> 저장
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>`;
+
+  document.getElementById('content-area').innerHTML = html;
+
+  // Image file input → base64 preview
+  document.getElementById('profile_image').addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast('이미지 파일만 업로드 가능합니다.', 'warning');
+      this.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      imageBase64 = e.target.result;
+      const preview = document.getElementById('image-preview');
+      const placeholder = document.getElementById('image-placeholder');
+      preview.src = imageBase64;
+      preview.classList.add('visible');
+      if (placeholder) placeholder.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Form submit
+  document.getElementById('instructor-form').addEventListener('submit', handleFormSubmit);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Form Submit Handler
+══════════════════════════════════════════════════════════════ */
+async function handleFormSubmit(e) {
+  e.preventDefault();
+
+  const nameVal = document.getElementById('instructor_name').value.trim();
+  if (!nameVal) {
+    showToast('강사명은 필수 입력 항목입니다.', 'warning');
+    document.getElementById('instructor_name').focus();
+    return;
+  }
+
+  const consentCheck = document.getElementById('privacy_consent_check');
+  if (!consentCheck.checked) {
+    showToast('개인정보 수집 및 이용 동의는 필수입니다.', 'warning');
+    consentCheck.focus();
+    return;
+  }
+
+  const formData = {
+    instructor_name:    document.getElementById('instructor_name').value.trim(),
+    instructor_name_en: document.getElementById('instructor_name_en').value.trim(),
+    nationality:        document.getElementById('nationality').value,
+    gender:             document.getElementById('gender').value,
+    organization:       document.getElementById('organization').value.trim(),
+    department:         document.getElementById('department').value.trim(),
+    position:           document.getElementById('position').value.trim(),
+    birth_date:         document.getElementById('birth_date').value || null,
+    company_address:    document.getElementById('company_address').value.trim(),
+    homepage:           document.getElementById('homepage').value.trim(),
+    email:              document.getElementById('email').value.trim(),
+    company_phone:      document.getElementById('company_phone').value.trim(),
+    instructor_type:    document.getElementById('instructor_type').value,
+    mobile_phone:       document.getElementById('mobile_phone').value.trim(),
+    education:          document.getElementById('education').value.trim(),
+    major:              document.getElementById('major').value.trim(),
+    career:             document.getElementById('career').value.trim(),
+    expertise:          document.getElementById('expertise').value.trim(),
+    lecture_field:      document.getElementById('lecture_field').value.trim(),
+    profile_image:      imageBase64 || null,
+    privacy_consent:    consentCheck.checked ? 'Y' : 'N',
+  };
+
+  await saveInstructor(formData);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VIEW Mode
+══════════════════════════════════════════════════════════════ */
+function showView(data) {
+  currentMode = 'view';
+  currentData = data;
+
+  function val(v) { return v ? esc(v) : '<span style="color:#bbb">—</span>'; }
+
+  const consentBadge = data.privacy_consent === 'Y'
+    ? '<span class="consent-badge yes">동의</span>'
+    : '<span class="consent-badge no">미동의</span>';
+
+  const profileImgHTML = data.profile_image
+    ? `<img src="${esc(data.profile_image)}" alt="${esc(data.instructor_name)} 강사 사진" class="view-profile-img" />`
+    : '<span style="color:#bbb;font-size:13px;">사진 없음</span>';
+
+  const html = `
+  <div class="content-card">
+    <div class="content-card-header">
+      <h2>${esc(data.instructor_name || '')} 사외강사 프로파일</h2>
+      <button class="btn btn-primary" type="button" onclick="showForm(currentData)">
+        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> 수정
+      </button>
+    </div>
+    <div class="content-card-body">
+
+      <!-- ── 기본 정보 ── -->
+      <div class="section-label">기본 정보</div>
+      <table class="view-table" role="presentation">
+        <colgroup>
+          <col style="width:140px"/>
+          <col/>
+          <col style="width:140px"/>
+          <col/>
+        </colgroup>
+
+        <tr>
+          <td class="view-label">강사명</td>
+          <td class="view-value">${val(data.instructor_name)}</td>
+          <td class="view-label">강사영문명</td>
+          <td class="view-value">${val(data.instructor_name_en)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">국적</td>
+          <td class="view-value">${val(data.nationality)}</td>
+          <td class="view-label">성별</td>
+          <td class="view-value">${val(data.gender)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">소속기관</td>
+          <td class="view-value">${val(data.organization)}</td>
+          <td class="view-label">부서</td>
+          <td class="view-value">${val(data.department)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">직급</td>
+          <td class="view-value">${val(data.position)}</td>
+          <td class="view-label">생년월일</td>
+          <td class="view-value">${val(data.birth_date)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">회사주소</td>
+          <td class="view-value" colspan="3">${val(data.company_address)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">홈페이지</td>
+          <td class="view-value" colspan="3">
+            ${data.homepage
+              ? `<a href="${esc(data.homepage)}" target="_blank" rel="noopener noreferrer">${esc(data.homepage)}</a>`
+              : '<span style="color:#bbb">—</span>'}
+          </td>
+        </tr>
+        <tr>
+          <td class="view-label">이메일</td>
+          <td class="view-value">
+            ${data.email
+              ? `<a href="mailto:${esc(data.email)}">${esc(data.email)}</a>`
+              : '<span style="color:#bbb">—</span>'}
+          </td>
+          <td class="view-label">회사전화</td>
+          <td class="view-value">${val(data.company_phone)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">강사 유형</td>
+          <td class="view-value">${val(data.instructor_type)}</td>
+          <td class="view-label">핸드폰</td>
+          <td class="view-value">${val(data.mobile_phone)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">최종 학력</td>
+          <td class="view-value">${val(data.education)}</td>
+          <td class="view-label">전공</td>
+          <td class="view-value">${val(data.major)}</td>
+        </tr>
+      </table>
+
+      <!-- ── 경력 및 역량 ── -->
+      <div class="section-label">경력 및 역량</div>
+      <table class="view-table" role="presentation">
+        <colgroup><col style="width:140px"/><col/></colgroup>
+        <tr>
+          <td class="view-label">주요 경력</td>
+          <td class="view-value multiline">${val(data.career)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">전문 역량</td>
+          <td class="view-value multiline">${val(data.expertise)}</td>
+        </tr>
+        <tr>
+          <td class="view-label">강의 분야</td>
+          <td class="view-value multiline">${val(data.lecture_field)}</td>
+        </tr>
+      </table>
+
+      <!-- ── 강사 사진 ── -->
+      <div class="section-label">강사 사진</div>
+      <table class="view-table" role="presentation">
+        <colgroup><col style="width:140px"/><col/></colgroup>
+        <tr>
+          <td class="view-label">강사 사진</td>
+          <td class="view-value">${profileImgHTML}</td>
+        </tr>
+      </table>
+
+      <!-- ── 개인정보 동의 ── -->
+      <div class="section-label">개인정보 동의</div>
+      <table class="view-table" role="presentation">
+        <colgroup><col style="width:140px"/><col/></colgroup>
+        <tr>
+          <td class="view-label">동의 여부</td>
+          <td class="view-value">${consentBadge}</td>
+        </tr>
+      </table>
+      <div class="privacy-view-doc">
+        <p class="privacy-view-title">[ 개인정보 수집 및 이용 동의 ]</p>
+        <p class="privacy-view-intro">회사는 사외 강사 등록 및 관리, 강의 운영을 위해 아래와 같이 개인정보를 수집·이용합니다.</p>
+        <p class="privacy-view-section">1. 수집 항목</p>
+        <ul class="privacy-view-list">
+          <li>필수항목: 이름, 생년월일, 연락처(휴대전화번호, 이메일), 소속(회사/기관), 전문분야</li>
+          <li>선택항목: 경력사항, 이력서, 포트폴리오 등</li>
+        </ul>
+        <p class="privacy-view-section">2. 수집 및 이용 목적</p>
+        <ul class="privacy-view-list">
+          <li>사외 강사 등록 및 본인 확인</li>
+          <li>강의 배정 및 운영 관리</li>
+          <li>강사료 지급 및 세무 처리</li>
+          <li>교육 품질 관리 및 커뮤니케이션</li>
+        </ul>
+        <p class="privacy-view-section">3. 보유 및 이용 기간</p>
+        <ul class="privacy-view-list">
+          <li>강사 등록일로부터 계약 종료 후 3년까지 보관</li>
+          <li>관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관</li>
+        </ul>
+        <p class="privacy-view-section">4. 동의 거부 권리 및 불이익 안내</p>
+        <ul class="privacy-view-list">
+          <li>이용자는 개인정보 수집 및 이용에 대한 동의를 거부할 권리가 있습니다.</li>
+          <li>단, 필수항목에 대한 동의 거부 시 사외 강사 등록을 제한할 수 있습니다.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>`;
+
+  document.getElementById('content-area').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Init on Page Load
+══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  loadInstructor();
+});
+</script>
+</body>
+</html>
