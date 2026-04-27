@@ -7,13 +7,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="auth/auth.css">
   <style>
     /* ─── Reset & Base ─────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
-      font-size: 15px;
+      font-size: 14px;
       background: #f0f4ff;
       color: #222;
       height: 100vh;
@@ -22,814 +23,350 @@
     }
 
     /* ─── Layout ────────────────────────────────────────────────── */
-    #app {
-      display: grid;
-      grid-template-columns: 20% 80%;
-      width: 100%;
-      height: 100vh;
-    }
+    #app { display: grid; grid-template-columns: 20% 80%; width: 100%; height: 100vh; }
 
-    /* ─── Left Panel ────────────────────────────────────────────── */
+    /* ─── Left Panel ─────────────────────────────────────────────  */
     #left-panel {
-      background: linear-gradient(160deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(175deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
       color: #fff;
       display: flex;
       flex-direction: column;
       overflow-y: auto;
       min-height: 100vh;
+      box-shadow: 4px 0 24px rgba(37,99,235,0.35);
     }
-
     .left-header {
-      padding: 28px 20px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.15);
+      padding: 30px 22px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.12);
     }
-
-    .left-header .app-logo-area {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
-    }
-
-    .left-header .app-logo-area i {
-      font-size: 22px;
-      color: #fff;
-      opacity: 0.95;
-    }
-
-    .left-header .app-title {
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: -0.3px;
-      color: #fff;
-    }
-
+    .left-header .app-logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+    .left-header .app-logo-area i { font-size: 26px; color: #fff; opacity: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); }
+    .left-header .app-title { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; color: #fff; line-height: 1.25; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .left-header .app-subtitle {
-      font-size: 11px;
-      color: rgba(255,255,255,0.6);
-      margin-top: 4px;
-      padding-left: 2px;
+      font-size: 12px; color: rgba(255,255,255,0.9);
+      margin-top: 5px; padding-left: 2px;
+      letter-spacing: 0.1px; line-height: 1.5;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.15);
     }
-
-    /* Accordion Level 1 */
-    .nav-group {}
 
     .nav-group-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      cursor: pointer;
-      user-select: none;
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.95);
-      letter-spacing: -0.2px;
-      transition: background 0.15s;
-      gap: 8px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 22px 13px; cursor: pointer; user-select: none;
+      font-size: 14px; font-weight: 700; color: #fff;
+      letter-spacing: -0.2px; text-transform: none;
+      transition: background 0.15s; gap: 8px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-
-    .nav-group-header .nav-group-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .nav-group-header:hover { background: rgba(255,255,255,0.10); }
-
-    .nav-group-header .chevron {
-      font-size: 11px;
-      transition: transform 0.2s;
-      color: rgba(255,255,255,0.55);
-      flex-shrink: 0;
-    }
-
+    .nav-group-header .nav-group-label { display: flex; align-items: center; gap: 8px; }
+    .nav-group-header .nav-group-label i { font-size: 13px; color: #fff; opacity: 0.9; }
+    .nav-group-header:hover { background: rgba(255,255,255,0.08); }
+    .nav-group-header .chevron { font-size: 11px; transition: transform 0.2s; color: #fff; opacity: 0.85; flex-shrink: 0; }
     .nav-group-header.collapsed .chevron { transform: rotate(180deg); }
-
-    .nav-group-body {
-      overflow: hidden;
-      max-height: 500px;
-      transition: max-height 0.25s ease;
-    }
-
+    .nav-group-body { overflow: hidden; max-height: 500px; transition: max-height 0.25s ease; }
     .nav-group-body.collapsed { max-height: 0; }
 
-    /* Accordion Level 2 */
     .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 12px 20px 12px 28px;
-      cursor: pointer;
-      font-size: 13px;
-      color: rgba(255,255,255,0.75);
-      letter-spacing: -0.2px;
-      border-left: 3px solid transparent;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      display: flex; align-items: center; gap: 11px;
+      padding: 11px 20px 11px 26px; cursor: pointer;
+      font-size: 14px; color: #fff; letter-spacing: -0.2px;
+      border-left: 4px solid transparent;
+      transition: background 0.15s, border-color 0.15s;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.18);
     }
-
     .nav-item:hover {
       background: rgba(255,255,255,0.12);
-      color: #fff;
+      border-left-color: rgba(255,255,255,0.6);
     }
-
     .nav-item.active {
       background: rgba(255,255,255,0.22);
       color: #fff;
       border-left-color: #fff;
-      font-weight: 600;
-    }
-
-    .nav-item i {
-      font-size: 13px;
-      opacity: 0.85;
-      flex-shrink: 0;
-    }
-
-    /* ─── Right Panel ───────────────────────────────────────────── */
-    #right-panel {
-      background: #f0f4ff;
-      overflow-y: auto;
-      padding: 32px 36px;
-    }
-
-    /* ─── Content Card ──────────────────────────────────────────── */
-    .content-card {
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(102,126,234,0.12);
-      overflow: hidden;
-    }
-
-    .content-card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 28px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-      border-radius: 20px 20px 0 0;
-    }
-
-    .content-card-header h2 {
-      font-size: 18px;
       font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.4px;
     }
+    .nav-item i { font-size: 14px; opacity: 1; flex-shrink: 0; width: 16px; text-align: center; }
+    .nav-item.active i { opacity: 1; }
 
-    .content-card-body { padding: 0; }
+    /* ─── Right Panel ─────────────────────────────────────────── */
+    #right-panel { background: #f0f4ff; overflow-y: auto; padding: 28px 32px; }
 
-    /* ─── Buttons ───────────────────────────────────────────────── */
+    /* ─── Content Card ────────────────────────────────────────── */
+    .content-card { background: #fff; border-radius: 16px; box-shadow: 0 6px 28px rgba(102,126,234,0.11); overflow: hidden; }
+    .content-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+    .content-card-header h2 { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.4px; }
+
+    /* ─── Section Header ──────────────────────────────────────── */
+    .sec-hdr {
+      font-size: 14px; font-weight: 700; color: #222;
+      padding: 14px 0 6px 0; margin: 0 24px;
+      border-bottom: 2px solid #333;
+    }
+    .sec-hdr:not(:first-child) { margin-top: 24px; }
+
+    /* ─── Registration Table (4-col form) ─────────────────────── */
+    .reg-table { width: 100%; border-collapse: collapse; margin: 0 0 4px 0; }
+    .reg-table td { padding: 7px 10px; vertical-align: middle; }
+    .reg-table .rl {
+      width: 110px; min-width: 110px;
+      text-align: right; font-size: 13px; font-weight: 600;
+      color: #333; white-space: nowrap; padding-right: 12px;
+    }
+    .reg-table .rl .req { color: #e53e3e; margin-left: 2px; font-weight: 700; }
+
+    /* ─── Form Inputs ─────────────────────────────────────────── */
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 7px 10px;
+      border: 1px solid #ccc; border-radius: 5px;
+      font-family: inherit; font-size: 13px; color: #333;
+      background: #fff; transition: border-color 0.15s, box-shadow 0.15s; outline: none;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+    }
+    .form-textarea { resize: vertical; line-height: 1.6; }
+
+    /* ─── Sub Table (dynamic rows) ────────────────────────────── */
+    .sub-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .sub-table th {
+      background: #f5f5f5; padding: 7px 10px;
+      text-align: left; font-weight: 600; color: #444;
+      border: 1px solid #ddd; font-size: 12.5px; white-space: nowrap;
+    }
+    .sub-table td { padding: 5px 6px; border: 1px solid #e5e5e5; vertical-align: middle; }
+    .sub-table td .form-input,
+    .sub-table td .form-select { border-color: #ddd; font-size: 12.5px; padding: 5px 8px; height: 30px; box-sizing: border-box; }
+
+    /* ─── Row +/- Buttons ─────────────────────────────────────── */
+    .btn-row-op {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; border: 1px solid; border-radius: 50%;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      line-height: 1; padding: 0; font-family: inherit;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-row-add { background: #fff; color: #667eea; border-color: #667eea; }
+    .btn-row-add:hover { background: #667eea; color: #fff; }
+    .btn-row-del { background: #fff; color: #e53e3e; border-color: #e53e3e; margin-left: 4px; }
+    .btn-row-del:hover { background: #e53e3e; color: #fff; }
+
+    /* ─── Attachment ──────────────────────────────────────────── */
+    .attach-list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+    .attach-item {
+      display: flex; align-items: center; gap: 10px;
+      background: #f7f7f7; border: 1px solid #e0e0e0;
+      border-radius: 5px; padding: 5px 10px; font-size: 12.5px;
+      max-width: 420px;
+    }
+    .attach-item .attach-name { flex: 1; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .attach-item .attach-size { color: #888; white-space: nowrap; }
+    .attach-item .attach-del {
+      background: none; border: none; color: #aaa; cursor: pointer;
+      font-size: 14px; padding: 0 2px; line-height: 1;
+      transition: color 0.12s;
+    }
+    .attach-item .attach-del:hover { color: #e53e3e; }
+
+    /* ─── Profile Image ───────────────────────────────────────── */
+    .profile-preview {
+      width: 80px; height: 80px; object-fit: cover;
+      border-radius: 8px; border: 1px solid #ddd; display: none;
+    }
+    .profile-preview.visible { display: block; }
+
+    /* ─── Buttons ─────────────────────────────────────────────── */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 9px 22px;
-      border: none;
-      border-radius: 10px;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: filter 0.15s, transform 0.15s, box-shadow 0.15s;
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 20px; border: none; border-radius: 8px;
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: filter 0.15s, transform 0.15s;
       letter-spacing: -0.2px;
     }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      filter: brightness(1.06);
-    }
-
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
     .btn:active { transform: scale(0.98); }
+    .btn-primary { background: linear-gradient(90deg,#667eea,#764ba2); color:#fff; box-shadow:0 3px 10px rgba(102,126,234,0.3); }
+    .btn-success { background: linear-gradient(90deg,#10b981,#059669); color:#fff; font-size:14px; padding:10px 36px; border-radius:10px; box-shadow:0 3px 10px rgba(16,185,129,0.3); }
+    .btn-secondary { background: #f1f3f5; color: #555; border-radius: 8px; }
+    .btn-secondary:hover { background: #e9ecef; }
+    .btn-edit   { background:#e8f4fd; color:#1a6fb3; padding:4px 10px; font-size:12px; border-radius:5px; border:none; cursor:pointer; font-family:inherit; font-weight:600; }
+    .btn-delete { background:#fde8e8; color:#b31a1a; padding:4px 10px; font-size:12px; border-radius:5px; border:none; cursor:pointer; font-family:inherit; font-weight:600; }
+    .btn-edit:hover   { filter: brightness(1.08); }
+    .btn-delete:hover { filter: brightness(1.08); }
+    .btn-sm { padding:5px 12px; font-size:12px; border-radius:6px; border:none; cursor:pointer; font-family:inherit; font-weight:600; }
 
-    .btn-primary {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(102,126,234,0.35);
-      border-radius: 10px;
-    }
-
-    .btn-primary:hover {
-      box-shadow: 0 6px 18px rgba(102,126,234,0.45);
-    }
-
-    .btn-success {
-      background: linear-gradient(90deg, #10b981, #059669);
-      color: #fff;
-      font-size: 15px;
-      padding: 12px 40px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(16,185,129,0.35);
-    }
-
-    .btn-success:hover {
-      box-shadow: 0 6px 18px rgba(16,185,129,0.45);
-    }
-
-    .btn-secondary {
-      background: #f1f3f5;
-      color: #6c757d;
-      border-radius: 10px;
-      box-shadow: none;
-    }
-
-    .btn-secondary:hover {
-      background: #e9ecef;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-
-    /* ─── Form Table ────────────────────────────────────────────── */
-    .form-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .form-table tr:nth-child(odd) td { background: transparent; }
-    .form-table tr:nth-child(even) td { background: transparent; }
-
-    .form-table td {
-      padding: 0;
-      border: none;
-      vertical-align: middle;
-    }
-
-    .form-table .label-cell {
-      width: 140px;
-      min-width: 140px;
-      background: transparent !important;
-      padding: 10px 14px 10px 0;
-      font-weight: 600;
-      color: #5a4fcf;
-      text-align: right;
-      font-size: 13px;
-      white-space: nowrap;
-      border-right: none;
-    }
-
-    .form-table .label-cell .label-icon {
-      margin-right: 5px;
-      font-size: 12px;
-      opacity: 0.8;
-    }
-
-    .form-table .label-cell .required {
-      color: #dc3545;
-      margin-left: 2px;
-    }
-
-    .form-table .input-cell {
-      padding: 8px 14px;
-    }
-
-    .form-table .full-width-cell {
-      padding: 8px 14px;
-    }
-
-    /* ─── Inputs ────────────────────────────────────────────────── */
-    .form-input,
-    .form-select,
-    .form-textarea {
-      width: 100%;
-      padding: 7px 10px;
-      border: 1px solid #d0c8f0;
-      border-radius: 6px;
-      font-family: inherit;
-      font-size: 13px;
-      color: #333;
-      background: #fff;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      outline: none;
-    }
-
-    .form-input:focus,
-    .form-select:focus,
-    .form-textarea:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102,126,234,0.18);
-    }
-
-    .form-textarea {
-      resize: vertical;
-      line-height: 1.55;
-    }
-
-    .form-input[readonly] {
-      background: #f3f0ff;
-      color: #7c6fcd;
-      cursor: not-allowed;
-      border-color: #d6ccff;
-    }
-
-    .form-input[disabled] {
-      background: #f5f5f5;
-      color: #bbb;
-      cursor: not-allowed;
-      border-color: #e0e0e0;
-    }
-
-    /* ─── Image Preview ─────────────────────────────────────────── */
-    #image-preview-wrap {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    #image-preview {
-      width: 150px;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid #e8e0ff;
-      display: none;
-    }
-
-    #image-preview.visible { display: block; }
-
-    #image-placeholder {
-      width: 150px;
-      height: 150px;
-      border: 2.5px dashed #c4b5fd;
-      border-radius: 12px;
-      background: #faf8ff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #a78bfa;
-      font-size: 12px;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .file-input-wrap { display: flex; flex-direction: column; gap: 6px; }
-    .file-hint { font-size: 11px; color: #a78bfa; }
-
-    /* ─── Privacy Consent ───────────────────────────────────────── */
-    .privacy-box {
-      margin: 0;
-      border: 1.5px solid #d6ccff;
-      border-radius: 12px;
-      background: #fdfcff;
-      overflow: hidden;
-    }
-
-    .privacy-box-header {
-      background: linear-gradient(90deg, #f0edff, #ede8ff);
-      padding: 12px 16px;
-      font-weight: 700;
-      font-size: 13px;
-      border-bottom: 1px solid #e0d8ff;
-      color: #5a4fcf;
-    }
-
-    .privacy-box-body {
-      padding: 14px 16px;
-      font-size: 12.5px;
-      line-height: 1.7;
-      color: #444;
-      max-height: 220px;
-      overflow-y: auto;
-      background: #fdfcff;
-    }
-
-    .privacy-box-body ol { padding-left: 18px; margin: 6px 0; }
-    .privacy-box-body li { margin-bottom: 4px; }
-    .privacy-box-body ul { padding-left: 18px; }
-    .privacy-box-body ul li { list-style: disc; }
-
-    .privacy-check-row {
-      padding: 12px 16px;
-      border-top: 1px solid #e0d8ff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #f5f2ff;
-    }
-
-    .privacy-check-row label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #222;
-      cursor: pointer;
-    }
-
-    .privacy-check-row input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      cursor: pointer;
-      accent-color: #667eea;
-    }
-
-    /* ─── Form Footer ───────────────────────────────────────────── */
+    /* ─── Form Footer ──────────────────────────────────────────── */
     .form-footer {
-      padding: 24px;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      border-top: 1px solid #ede8ff;
-      background: #f8f6ff;
+      padding: 20px 24px; display: flex; justify-content: center; gap: 12px;
+      border-top: 1px solid #eeebff; background: #faf8ff; margin-top: 8px;
     }
 
-    /* ─── VIEW Mode Table ───────────────────────────────────────── */
-    .view-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+    /* ─── View Mode ───────────────────────────────────────────── */
+    .view-table { width: 100%; border-collapse: collapse; }
+    .view-table td { padding: 8px 10px; vertical-align: top; border: none; }
+    .view-label { width: 110px; min-width: 110px; text-align: right; font-weight: 600; color: #444; font-size: 13px; white-space: nowrap; padding-right: 12px; }
+    .view-value { font-size: 13px; color: #222; line-height: 1.6; }
+    .view-sub-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+    .view-sub-table th { background: #f5f5f5; padding: 6px 10px; text-align: left; font-weight: 600; color: #444; border: 1px solid #ddd; font-size: 12.5px; }
+    .view-sub-table td { padding: 6px 10px; border: 1px solid #e8e8e8; color: #333; }
 
-    .view-table td {
-      border: none;
-      padding: 0;
-      vertical-align: middle;
-    }
+    /* ─── Data Table (Tax Company List) ──────────────────────── */
+    .list-toolbar { display: flex; justify-content: flex-end; padding: 14px 20px 10px; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    .data-table thead tr { background: linear-gradient(90deg,#f0edff,#f8f6ff); }
+    .data-table th { padding: 10px 14px; text-align: left; font-weight: 700; color: #5a4fcf; font-size: 13px; border-bottom: 2px solid #ede8ff; white-space: nowrap; }
+    .data-table td { padding: 10px 14px; border-bottom: 1px solid #f0eeff; color: #333; font-size: 13px; }
+    .data-table tbody tr:hover td { background: #faf8ff; }
+    .data-table .action-cell { white-space: nowrap; text-align: center; width: 100px; }
+    .empty-table { text-align: center; padding: 36px; color: #aaa; font-size: 13px; }
 
-    .view-table tr:nth-child(odd) td { background: transparent; }
-    .view-table tr:nth-child(even) td { background: transparent; }
+    /* ─── Modal ───────────────────────────────────────────────── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 10000; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: #fff; border-radius: 14px; box-shadow: 0 16px 48px rgba(102,126,234,0.22); width: 520px; max-width: 94vw; overflow: hidden; animation: modalIn 0.18s ease; }
+    @keyframes modalIn { from{opacity:0;transform:translateY(-14px) scale(0.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; background: linear-gradient(90deg,#667eea 0%,#764ba2 100%); }
+    .modal-header h3 { font-size: 15px; font-weight: 700; color: #fff; }
+    .modal-close { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 20px; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background 0.15s; }
+    .modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .modal-body { padding: 22px; display: flex; flex-direction: column; gap: 13px; }
+    .modal-field { display: flex; flex-direction: column; gap: 5px; }
+    .modal-field label { font-size: 13px; font-weight: 600; color: #5a4fcf; }
+    .modal-field .req { color: #e53e3e; margin-left: 2px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid #ede8ff; background: #f8f6ff; }
 
-    .view-table .view-label {
-      width: 140px;
-      min-width: 140px;
-      background: transparent !important;
-      padding: 10px 14px 10px 0;
-      font-weight: 600;
-      color: #5a4fcf;
-      text-align: right;
-      font-size: 13px;
-      white-space: nowrap;
-      border-right: none;
-    }
-
-    .view-table .view-value {
-      padding: 10px 16px;
-      font-size: 13px;
-      color: #222;
-      line-height: 1.5;
-    }
-
-    .view-table .view-value.multiline {
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .view-profile-img {
-      width: 150px;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 12px;
-      border: 1px solid #e8e0ff;
-    }
-
-    .consent-badge {
-      display: inline-block;
-      padding: 3px 12px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .consent-badge.yes { background: #d1fae5; color: #065f46; }
-    .consent-badge.no  { background: #fee2e2; color: #991b1b; }
-
-    /* ─── Loading Spinner ───────────────────────────────────────── */
-    #spinner-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(255,255,255,0.70);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-    }
-
+    /* ─── Spinner ─────────────────────────────────────────────── */
+    #spinner-overlay { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.70); z-index: 9999; align-items: center; justify-content: center; }
     #spinner-overlay.active { display: flex; }
-
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 5px solid #e8e0ff;
-      border-top-color: #667eea;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-
+    .spinner { width: 46px; height: 46px; border: 5px solid #e8e0ff; border-top-color: #667eea; border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ─── Toast Alerts ──────────────────────────────────────────── */
-    #toast-container {
-      position: fixed;
-      top: 20px;
-      right: 24px;
-      z-index: 99999;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      pointer-events: none;
-    }
-
-    .toast {
-      padding: 14px 20px;
-      border-radius: 12px;
-      font-size: 13.5px;
-      font-weight: 600;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      opacity: 0;
-      transform: translateX(30px);
-      transition: opacity 0.25s, transform 0.25s;
-      pointer-events: auto;
-      max-width: 340px;
-      line-height: 1.45;
-      background: #fff;
-      border-left: 4px solid #667eea;
-      color: #222;
-    }
-
+    /* ─── Toast ───────────────────────────────────────────────── */
+    #toast-container { position: fixed; top: 20px; right: 22px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    .toast { padding: 13px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 6px 20px rgba(0,0,0,0.12); opacity: 0; transform: translateX(28px); transition: opacity 0.22s, transform 0.22s; pointer-events: auto; max-width: 320px; background: #fff; border-left: 4px solid #667eea; color: #222; }
     .toast.show { opacity: 1; transform: translateX(0); }
     .toast.success { border-left-color: #10b981; }
     .toast.error   { border-left-color: #ef4444; }
     .toast.warning { border-left-color: #f59e0b; }
 
-    /* ─── Section divider ───────────────────────────────────────── */
-    .section-label {
-      background: linear-gradient(90deg, #f0edff, #f8f6ff);
-      padding: 10px 20px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #5a4fcf;
-      text-transform: uppercase;
-      letter-spacing: 0.6px;
-      border-bottom: 1px solid #ede8ff;
-      border-top: 1px solid #ede8ff;
-    }
-
-    /* ─── Privacy View Document ─────────────────────────────────── */
-    .privacy-view-doc {
-      padding: 16px 20px 20px 160px;
-      font-size: 14px;
-      line-height: 1.8;
-      color: #333;
-    }
-
-    .privacy-view-title {
-      font-weight: 700;
-      font-size: 14px;
-      color: #222;
-      margin-bottom: 8px;
-    }
-
-    .privacy-view-intro {
-      margin-bottom: 14px;
-      color: #444;
-    }
-
-    .privacy-view-section {
-      font-weight: 700;
-      font-size: 14px;
-      color: #222;
-      margin: 14px 0 4px;
-    }
-
-    .privacy-view-list {
-      list-style: disc;
-      padding-left: 48px;
-      color: #444;
-    }
-
-    .privacy-view-list li {
-      margin-bottom: 2px;
-    }
-
-    /* ─── Tax Company List ──────────────────────────────────────── */
-    .list-toolbar {
-      display: flex;
-      justify-content: flex-end;
-      padding: 16px 24px 12px;
-    }
-
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    .data-table thead tr {
-      background: linear-gradient(90deg, #f0edff, #f8f6ff);
-    }
-
-    .data-table th {
-      padding: 11px 16px;
-      text-align: left;
-      font-weight: 700;
-      color: #5a4fcf;
-      font-size: 13px;
-      border-bottom: 2px solid #ede8ff;
-      white-space: nowrap;
-    }
-
-    .data-table td {
-      padding: 11px 16px;
-      border-bottom: 1px solid #f0eeff;
-      color: #333;
-      font-size: 13px;
-    }
-
-    .data-table tbody tr:hover td { background: #faf8ff; }
-
-    .data-table .action-cell {
-      white-space: nowrap;
-      text-align: center;
-      width: 100px;
-    }
-
-    .btn-sm {
-      padding: 5px 12px;
-      font-size: 12px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-family: inherit;
-      font-weight: 600;
-      transition: filter 0.15s;
-    }
-
-    .btn-sm:hover { filter: brightness(1.08); }
-
-    .btn-edit  { background: #e8f4fd; color: #1a6fb3; }
-    .btn-delete{ background: #fde8e8; color: #b31a1a; }
-
-    .empty-table {
-      text-align: center;
-      padding: 40px;
-      color: #aaa;
-      font-size: 14px;
-    }
-
-    /* ─── Modal ─────────────────────────────────────────────────── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.45);
-      z-index: 10000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-overlay.active { display: flex; }
-
-    .modal {
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 16px 48px rgba(102,126,234,0.22);
-      width: 520px;
-      max-width: 94vw;
-      overflow: hidden;
-      animation: modalIn 0.2s ease;
-    }
-
-    @keyframes modalIn {
-      from { opacity: 0; transform: translateY(-16px) scale(0.97); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 24px;
-      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-    }
-
-    .modal-header h3 {
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .modal-close {
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.8);
-      font-size: 20px;
-      cursor: pointer;
-      line-height: 1;
-      padding: 2px 6px;
-      border-radius: 4px;
-      transition: background 0.15s;
-    }
-
-    .modal-close:hover { background: rgba(255,255,255,0.15); color: #fff; }
-
-    .modal-body {
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .modal-field {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .modal-field label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #5a4fcf;
-    }
-
-    .modal-field .required { color: #dc3545; margin-left: 2px; }
-
-    .modal-footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      padding: 16px 24px;
-      border-top: 1px solid #ede8ff;
-      background: #f8f6ff;
-    }
-
-    /* ─── Empty / Placeholder State ─────────────────────────────── */
-    .empty-state {
-      padding: 60px 24px;
-      text-align: center;
-      color: #a78bfa;
-    }
-
-    .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    /* ─── Misc ────────────────────────────────────────────────── */
+    .empty-state { padding: 56px 24px; text-align: center; color: #a78bfa; }
+    .empty-state .empty-icon { font-size: 46px; margin-bottom: 12px; }
     .empty-state p { font-size: 14px; color: #9ca3af; }
+    .consent-badge { display:inline-block; padding:2px 10px; border-radius:10px; font-size:12px; font-weight:600; }
+    .consent-badge.yes { background:#d1fae5; color:#065f46; }
+    .consent-badge.no  { background:#fee2e2; color:#991b1b; }
 
-    /* ─── Responsive ────────────────────────────────────────────── */
+    /* ─── Privacy Box ─────────────────────────────────────────── */
+    .privacy-box { margin: 0; border: 1.5px solid #d6ccff; border-radius: 10px; background: #fdfcff; overflow: hidden; }
+    .privacy-box-header { background: linear-gradient(90deg,#f0edff,#ede8ff); padding: 10px 14px; font-weight: 700; font-size: 13px; border-bottom: 1px solid #e0d8ff; color: #5a4fcf; }
+    .privacy-box-body { padding: 12px 14px; font-size: 12px; line-height: 1.7; color: #444; max-height: 200px; overflow-y: auto; }
+    .privacy-box-body ol { padding-left: 16px; margin: 5px 0; }
+    .privacy-box-body li { margin-bottom: 3px; }
+    .privacy-check-row { padding: 10px 14px; border-top: 1px solid #e0d8ff; display: flex; align-items: center; gap: 8px; background: #f5f2ff; }
+    .privacy-check-row label { font-size: 13px; font-weight: 600; color: #222; cursor: pointer; }
+    .privacy-check-row input[type="checkbox"] { width: 15px; height: 15px; cursor: pointer; accent-color: #667eea; }
+
     @media (max-width: 900px) {
       #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-      #left-panel { min-height: auto; max-height: 220px; }
+      #left-panel { min-height: auto; max-height: 200px; }
       body { overflow: auto; height: auto; }
     }
 
-    @media (max-width: 600px) {
-      #right-panel { padding: 16px 12px; }
-      .form-table .label-cell,
-      .view-table .view-label { width: 100px; min-width: 100px; font-size: 12px; }
+    /* ─── Badge ─────────────────────────────────────────────────── */
+    .badge-requested { display:inline-block; padding:2px 10px; font-size:11px; font-weight:700; border-radius:20px; background:#d1fae5; color:#065f46; white-space:nowrap; }
+    .badge-pending   { display:inline-block; padding:2px 10px; font-size:11px; font-weight:700; border-radius:20px; background:#f1f5f9; color:#64748b; white-space:nowrap; }
+    tr.row-selected td { background:#eef2ff !important; }
+
+    /* ─── Email Preview ──────────────────────────────────────────── */
+    .email-preview { background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:18px 20px; font-size:13px; line-height:1.8; color:#334155; white-space:pre-wrap; font-family:inherit; margin-bottom:4px; }
+    .email-preview strong { color:#1e293b; }
+    .email-preview p { margin-bottom:12px; color:#334155; }
+    .email-info-table { width:100%; border-collapse:separate; border-spacing:0 6px; margin:14px 0; }
+    .email-info-table td.lbl { font-weight:700; color:#4f46e5; font-size:15px; white-space:nowrap; padding:10px 16px 10px 0; width:110px; vertical-align:middle; }
+    .email-info-table td.sep { color:#94a3b8; padding:0 8px; vertical-align:middle; font-size:16px; }
+    .email-info-table td.val { color:#1e293b; font-size:15px; font-weight:500; word-break:break-all; background:#eef2ff; border-radius:7px; padding:10px 14px; vertical-align:middle; }
+
+    .auth-user-info {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px 16px;
+      border-top: 1px solid rgba(255,255,255,0.18);
+      margin-top: auto;
+      background: rgba(0,0,0,0.12);
+    }
+    .auth-user-info .user-email {
+      font-size: 12px; color: rgba(255,255,255,0.8);
+      flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      letter-spacing: -0.1px;
+    }
+    .auth-logout-btn {
+      padding: 5px 12px; font-size: 11.5px; font-weight: 600;
+      border: 1.5px solid rgba(255,255,255,0.45); border-radius: 20px;
+      background: transparent; color: rgba(255,255,255,0.9);
+      cursor: pointer; font-family: inherit; white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+      letter-spacing: -0.1px;
+    }
+    .auth-logout-btn:hover {
+      background: rgba(255,255,255,0.18);
+      border-color: rgba(255,255,255,0.7);
+      color: #fff;
     }
   </style>
 </head>
 <body>
 
-<!-- Spinner -->
-<div id="spinner-overlay" role="status" aria-live="polite" aria-label="로딩 중">
-  <div class="spinner"></div>
-</div>
-
-<!-- Toast Container -->
+<div id="spinner-overlay" role="status"><div class="spinner"></div></div>
 <div id="toast-container" aria-live="assertive" aria-atomic="true"></div>
 
-<!-- Main App Grid -->
-<div id="app">
+<div id="app" style="display:none;">
 
   <!-- ═══ LEFT PANEL ═══════════════════════════════════════════ -->
-  <nav id="left-panel" aria-label="주 메뉴">
+  <nav id="left-panel">
     <div class="left-header">
       <div class="app-logo-area">
-        <i class="fa-solid fa-chalkboard-user" aria-hidden="true"></i>
+        <i class="fa-solid fa-chalkboard-user"></i>
         <div class="app-title">강사 관리 시스템</div>
       </div>
       <div class="app-subtitle">사외 강사 정보 관리 포털</div>
     </div>
-
     <div class="nav-group">
-      <div class="nav-group-header" id="nav-group-toggle" role="button" tabindex="0"
-           aria-expanded="true" aria-controls="nav-group-body">
-        <span class="nav-group-label">
-          <i class="fa-solid fa-users-gear" aria-hidden="true"></i>
-          사외 강사 관리
-        </span>
-        <span class="chevron" aria-hidden="true">&#9650;</span>
+      <div class="nav-group-header" id="nav-group-toggle" role="button" tabindex="0">
+        <span class="nav-group-label"><i class="fa-solid fa-users-gear"></i> 사외 강사 관리</span>
+        <span class="chevron">&#9650;</span>
       </div>
-      <div class="nav-group-body" id="nav-group-body" role="list">
-        <div class="nav-item active" id="nav-register" role="listitem button" tabindex="0"
-             aria-current="page" onclick="handleNavRegister()">
-          <i class="fa-solid fa-id-card" aria-hidden="true"></i>
-          강사 등록
+      <div class="nav-group-body" id="nav-group-body">
+        <div class="nav-item" id="nav-instr-request" role="button" tabindex="0" onclick="handleNavInstrRequest()">
+          <i class="fa-solid fa-paper-plane"></i> 강사정보 등록요청
         </div>
-        <div class="nav-item" id="nav-tax-company" role="listitem button" tabindex="0"
-             onclick="handleNavTaxCompany()">
-          <i class="fa-solid fa-file-invoice" aria-hidden="true"></i>
-          세금계산서 업체
+        <div class="nav-item active" id="nav-register" role="button" tabindex="0" onclick="handleNavRegister()">
+          <i class="fa-solid fa-id-card"></i> 강사 등록
+        </div>
+        <div class="nav-item" id="nav-personal-vendor" role="button" tabindex="0" onclick="handleNavPersonalVendor()">
+          <i class="fa-solid fa-user-tag"></i> 개인 벤더
+        </div>
+        <div class="nav-item" id="nav-tax-company" role="button" tabindex="0" onclick="handleNavTaxCompany()">
+          <i class="fa-solid fa-file-invoice"></i> 업체 벤더
         </div>
       </div>
+    </div>
+    <div class="auth-user-info">
+      <i class="fa-solid fa-circle-user" style="color:rgba(255,255,255,0.7);font-size:16px;"></i>
+      <span class="user-email" id="current-user-email"></span>
+      <button class="auth-logout-btn" onclick="doLogout()">로그아웃</button>
     </div>
   </nav>
 
   <!-- ═══ RIGHT PANEL ══════════════════════════════════════════ -->
-  <main id="right-panel" aria-label="콘텐츠 영역">
-
-    <!-- Content is injected here by JS -->
+  <main id="right-panel">
     <div id="content-area">
       <div class="empty-state">
-        <div class="empty-icon" aria-hidden="true">📋</div>
+        <div class="empty-icon">📋</div>
         <p>왼쪽 메뉴에서 항목을 선택하세요.</p>
       </div>
     </div>
-
   </main>
 </div>
 
@@ -847,107 +384,679 @@ const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 /* ══════════════════════════════════════════════════════════════
    State
 ══════════════════════════════════════════════════════════════ */
-let currentMode = null; // 'view' | 'form' | 'edit'
-let currentData = null;
-let imageBase64 = null;
+let currentUser          = null;
+let currentInstructorId  = null;
+let selectedRequestId    = null;
+let profileImageBase64 = null;
+let attachmentState = []; // {file_name, file_size, is_new}
+let orgFromList = false;  // true = 업체 목록에서 선택한 경우
+let _mousedownTarget = null; // drag 이탈로 팝업 닫힘 방지용
 
 /* ══════════════════════════════════════════════════════════════
-   Dropdown Data
+   Constants
 ══════════════════════════════════════════════════════════════ */
-const NATIONALITIES = [
-  '대한민국','미국','중국','일본','영국','독일','프랑스',
-  '캐나다','호주','싱가포르','인도','태국','베트남','기타'
-];
-
-const GENDERS = ['남','여'];
 const INSTRUCTOR_TYPES = ['교수','저명인사','일반강사'];
+const GENDERS = ['남','여'];
+const EDU_TYPES = ['대학교','대학원'];
+const CAREER_TYPES = ['강의','컨설팅','프로젝트'];
 
 /* ══════════════════════════════════════════════════════════════
-   Utility: Spinner
+   Utilities
 ══════════════════════════════════════════════════════════════ */
-function showSpinner() {
-  document.getElementById('spinner-overlay').classList.add('active');
-}
-function hideSpinner() {
-  document.getElementById('spinner-overlay').classList.remove('active');
-}
+function showSpinner() { document.getElementById('spinner-overlay').classList.add('active'); }
+function hideSpinner() { document.getElementById('spinner-overlay').classList.remove('active'); }
 
-/* ══════════════════════════════════════════════════════════════
-   Utility: Toast
-══════════════════════════════════════════════════════════════ */
 function showToast(message, type = 'success', duration = 3500) {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  toast.textContent = message;
-  toast.setAttribute('role', 'alert');
-  container.appendChild(toast);
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => toast.classList.add('show'));
-  });
-
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = message;
+  c.appendChild(t);
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add('show')));
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 280); }, duration);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   Utility: Escape HTML
-══════════════════════════════════════════════════════════════ */
 function esc(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;');
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + 'B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(0) + 'KB';
+  return (bytes/1048576).toFixed(1) + 'MB';
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Utility: Select Options HTML
+   Dropdown Helpers
 ══════════════════════════════════════════════════════════════ */
-function buildOptions(list, selected) {
-  return list.map(v =>
-    `<option value="${esc(v)}"${selected === v ? ' selected' : ''}>${esc(v)}</option>`
-  ).join('');
+function selectOpts(values, sel, placeholder) {
+  return `<option value="">${esc(placeholder)}</option>` +
+    values.map(v => `<option value="${esc(v)}" ${sel===v?'selected':''}>${esc(v)}</option>`).join('');
+}
+function birthYearOpts(sel) {
+  const opts = Array.from({length:75},(_,i)=>2005-i)
+    .map(y=>`<option value="${y}" ${Number(sel)===y?'selected':''}>${y}년</option>`).join('');
+  return `<option value="">년도 선택</option>${opts}`;
+}
+function careerYearOpts(sel) {
+  const opts = Array.from({length:60},(_,i)=>2030-i)
+    .map(y=>`<option value="${y}" ${Number(sel)===y?'selected':''}>${y}년</option>`).join('');
+  return `<option value="">년도 *</option>${opts}`;
+}
+function monthOpts(sel, req=false) {
+  const opts = Array.from({length:12},(_,i)=>String(i+1).padStart(2,'0'))
+    .map(m=>`<option value="${m}" ${sel===m?'selected':''}>${m}월</option>`).join('');
+  return `<option value="">${req?'월 *':'월'}</option>${opts}`;
+}
+function dayOpts(sel) {
+  const opts = Array.from({length:31},(_,i)=>String(i+1).padStart(2,'0'))
+    .map(d=>`<option value="${d}" ${sel===d?'selected':''}>${d}일</option>`).join('');
+  return `<option value="">일 선택</option>${opts}`;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Left Menu: Accordion
+   Nav Toggle
 ══════════════════════════════════════════════════════════════ */
-const navGroupToggle = document.getElementById('nav-group-toggle');
-const navGroupBody   = document.getElementById('nav-group-body');
-
-function toggleAccordion() {
-  const collapsed = navGroupBody.classList.toggle('collapsed');
-  navGroupToggle.classList.toggle('collapsed', collapsed);
-  navGroupToggle.setAttribute('aria-expanded', String(!collapsed));
-}
-
-navGroupToggle.addEventListener('click', toggleAccordion);
-navGroupToggle.addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAccordion(); }
+document.getElementById('nav-group-toggle').addEventListener('click', () => {
+  const hdr  = document.getElementById('nav-group-toggle');
+  const body = document.getElementById('nav-group-body');
+  hdr.classList.toggle('collapsed');
+  body.classList.toggle('collapsed');
 });
 
-/* ══════════════════════════════════════════════════════════════
-   Left Menu: Navigation
-══════════════════════════════════════════════════════════════ */
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
 function handleNavRegister() {
-  document.querySelectorAll('.nav-item').forEach(el => {
-    el.classList.remove('active');
-    el.removeAttribute('aria-current');
-  });
-  const item = document.getElementById('nav-register');
-  item.classList.add('active');
-  item.setAttribute('aria-current', 'page');
+  setActiveNav('nav-register');
   loadInstructor();
 }
 
-document.getElementById('nav-register').addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavRegister(); }
-});
+/* ══════════════════════════════════════════════════════════════
+   Row Template Functions (Dynamic Tables)
+══════════════════════════════════════════════════════════════ */
+function homepageRowHtml(name='', url='') {
+  return `<tr>
+    <td><input class="form-input" data-field="hp_name" maxlength="200" placeholder="명칭" value="${esc(name)}"></td>
+    <td><input class="form-input" data-field="hp_url" maxlength="200" placeholder="https://" value="${esc(url)}"></td>
+    <td style="width:76px;text-align:center;white-space:nowrap;">
+      <button type="button" class="btn-row-op btn-row-add" title="행 추가" onclick="addRow(this,'homepage')">+</button>
+      <button type="button" class="btn-row-op btn-row-del" title="행 삭제" onclick="removeRow(this,'homepage')">−</button>
+    </td>
+  </tr>`;
+}
+
+function educationRowHtml(type='', school='', dept='', major='') {
+  return `<tr>
+    <td style="width:115px;">
+      <select class="form-select" data-field="edu_type">
+        ${selectOpts(EDU_TYPES, type, '구분 선택')}
+      </select>
+    </td>
+    <td><input class="form-input" data-field="school_name" maxlength="100" placeholder="학교명" value="${esc(school)}"></td>
+    <td><input class="form-input" data-field="department" maxlength="100" placeholder="학과" value="${esc(dept)}"></td>
+    <td><input class="form-input" data-field="major" maxlength="100" placeholder="전공" value="${esc(major)}"></td>
+    <td style="width:76px;text-align:center;white-space:nowrap;">
+      <button type="button" class="btn-row-op btn-row-add" title="행 추가" onclick="addRow(this,'education')">+</button>
+      <button type="button" class="btn-row-op btn-row-del" title="행 삭제" onclick="removeRow(this,'education')">−</button>
+    </td>
+  </tr>`;
+}
+
+function careerRowHtml(type='', company='', sy='', sm='', ey='', em='') {
+  return `<tr>
+    <td style="width:100px;">
+      <select class="form-select" data-field="career_type">
+        ${selectOpts(CAREER_TYPES, type, '구분')}
+      </select>
+    </td>
+    <td><input class="form-input" data-field="company_name" maxlength="100" placeholder="기업/기관명" value="${esc(company)}"></td>
+    <td style="width:100px;"><select class="form-select" data-field="start_year">${careerYearOpts(sy)}</select></td>
+    <td style="width:76px;"><select class="form-select" data-field="start_month">${monthOpts(sm)}</select></td>
+    <td style="width:100px;"><select class="form-select" data-field="end_year">${careerYearOpts(ey)}</select></td>
+    <td style="width:76px;"><select class="form-select" data-field="end_month">${monthOpts(em)}</select></td>
+    <td style="width:76px;text-align:center;white-space:nowrap;">
+      <button type="button" class="btn-row-op btn-row-add" title="행 추가" onclick="addRow(this,'career')">+</button>
+      <button type="button" class="btn-row-op btn-row-del" title="행 삭제" onclick="removeRow(this,'career')">−</button>
+    </td>
+  </tr>`;
+}
+
+function lectureRowHtml(company='', topic='') {
+  return `<tr>
+    <td style="width:30%;"><input class="form-input" data-field="company_name" maxlength="100" placeholder="기업/기관명" value="${esc(company)}"></td>
+    <td><input class="form-input" data-field="topic" maxlength="300" placeholder="강의 주제" value="${esc(topic)}"></td>
+    <td style="width:76px;text-align:center;white-space:nowrap;">
+      <button type="button" class="btn-row-op btn-row-add" title="행 추가" onclick="addRow(this,'lecture')">+</button>
+      <button type="button" class="btn-row-op btn-row-del" title="행 삭제" onclick="removeRow(this,'lecture')">−</button>
+    </td>
+  </tr>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Dynamic Row Add / Remove
+══════════════════════════════════════════════════════════════ */
+const TBODY_IDS = {
+  homepage: 'homepage-body',
+  education: 'education-body',
+  career: 'career-body',
+  lecture: 'lecture-body',
+};
+const ROW_FNS = {
+  homepage:  () => homepageRowHtml(),
+  education: () => educationRowHtml(),
+  career:    () => careerRowHtml(),
+  lecture:   () => lectureRowHtml(),
+};
+
+function addRow(btn, type) {
+  const tbody = document.getElementById(TBODY_IDS[type]);
+  if (!tbody) return;
+  const tmp = document.createElement('tbody');
+  tmp.innerHTML = ROW_FNS[type]();
+  tbody.appendChild(tmp.firstElementChild);
+}
+
+function removeRow(btn, type) {
+  const tbody = document.getElementById(TBODY_IDS[type]);
+  if (!tbody) return;
+  const row = btn.closest('tr');
+  if (tbody.querySelectorAll('tr').length <= 1) {
+    // 마지막 행은 삭제하지 않고 내용만 초기화
+    row.querySelectorAll('input').forEach(el => el.value = '');
+    row.querySelectorAll('select').forEach(el => el.value = '');
+    return;
+  }
+  row.remove();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Collect Dynamic Table Rows
+══════════════════════════════════════════════════════════════ */
+function collectRows(tbodyId, fields) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return [];
+  const result = [];
+  tbody.querySelectorAll('tr').forEach(row => {
+    const obj = {};
+    fields.forEach(f => {
+      const el = row.querySelector(`[data-field="${f}"]`);
+      obj[f] = el ? el.value.trim() : '';
+    });
+    if (Object.values(obj).some(v => v !== '')) result.push(obj);
+  });
+  return result;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Attachment Handling
+══════════════════════════════════════════════════════════════ */
+function handleAttachmentSelect(input) {
+  Array.from(input.files).forEach(f => {
+    attachmentState.push({ file_name: f.name, file_size: f.size, is_new: true });
+  });
+  input.value = '';
+  renderAttachments();
+}
+
+function removeAttachment(idx) {
+  attachmentState.splice(idx, 1);
+  renderAttachments();
+}
+
+function renderAttachments() {
+  const container = document.getElementById('attachment-list');
+  if (!container) return;
+  if (attachmentState.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = attachmentState.map((a, i) => `
+    <div class="attach-item">
+      <i class="fa-solid fa-file" style="color:#888;font-size:12px;flex-shrink:0;"></i>
+      <span class="attach-name">${esc(a.file_name)}</span>
+      <span class="attach-size">${fmtSize(a.file_size)}</span>
+      <button type="button" class="attach-del" onclick="removeAttachment(${i})" title="삭제">&times;</button>
+    </div>`).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Profile Image Handling
+══════════════════════════════════════════════════════════════ */
+function handleProfileImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) {
+    showToast('사진 파일은 3MB 이하만 가능합니다.', 'warning');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    profileImageBase64 = e.target.result;
+    const img = document.getElementById('profile-img-preview');
+    if (img) { img.src = profileImageBase64; img.classList.add('visible'); }
+    const ph = document.getElementById('profile-placeholder');
+    if (ph) ph.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FORM HTML Generator
+══════════════════════════════════════════════════════════════ */
+function buildFormHtml(p) {
+  p = p || {};
+  const hpRows = (p.homepages && p.homepages.length > 0)
+    ? p.homepages.map(h => homepageRowHtml(h.hp_name, h.hp_url)).join('')
+    : homepageRowHtml();
+  const eduRows = (p.educations && p.educations.length > 0)
+    ? p.educations.map(e => educationRowHtml(e.edu_type, e.school_name, e.department, e.major)).join('')
+    : educationRowHtml();
+  const careerRows = (p.careers && p.careers.length > 0)
+    ? p.careers.map(c => careerRowHtml(c.career_type, c.company_name, c.start_year, c.start_month, c.end_year, c.end_month)).join('')
+    : careerRowHtml();
+  const lectureRows = (p.lectures && p.lectures.length > 0)
+    ? p.lectures.map(l => lectureRowHtml(l.company_name, l.topic)).join('')
+    : lectureRowHtml();
+
+  return `
+  <div class="content-card">
+    <div class="content-card-header">
+      <h2><i class="fa-solid fa-user-tie" style="margin-right:8px;"></i>강사 정보 등록</h2>
+      ${currentInstructorId ? `<button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="cancelEdit()"><i class="fa-solid fa-xmark"></i> 취소</button>` : ''}
+    </div>
+
+    <!-- ── 기본 정보 ─────────────────────────────── -->
+    <div class="sec-hdr">기본 정보</div>
+    <table class="reg-table" style="padding:4px 12px;">
+      <colgroup><col style="width:110px"><col><col style="width:110px"><col></colgroup>
+
+      <tr>
+        <td class="rl">성명<span class="req">*</span></td>
+        <td><input class="form-input" id="f_name" maxlength="100" placeholder="성명 입력" value="${esc(p.instructor_name||'')}"></td>
+        <td class="rl">강사 유형<span class="req">*</span></td>
+        <td><select class="form-select" id="f_type">${selectOpts(INSTRUCTOR_TYPES, p.instructor_type||'', '선택하세요')}</select></td>
+      </tr>
+
+      <tr>
+        <td class="rl">생년월일<span class="req">*</span></td>
+        <td>
+          <div style="display:flex;gap:5px;">
+            <select class="form-select" id="f_birth_year" style="flex:2;">${birthYearOpts(p.birth_year)}</select>
+            <select class="form-select" id="f_birth_month" style="flex:1.5;">${monthOpts(p.birth_month||'')}</select>
+            <select class="form-select" id="f_birth_day" style="flex:1.5;">${dayOpts(p.birth_day||'')}</select>
+          </div>
+        </td>
+        <td class="rl">성별<span class="req">*</span></td>
+        <td><select class="form-select" id="f_gender">${selectOpts(GENDERS, p.gender||'', '성별 선택')}</select></td>
+      </tr>
+
+      <tr>
+        <td class="rl">이메일<span class="req">*</span></td>
+        <td><input class="form-input" id="f_email" maxlength="200" placeholder="example@email.com" value="${esc(p.email||'')}"></td>
+        <td class="rl">휴대전화<span class="req">*</span></td>
+        <td><input class="form-input" id="f_mobile" maxlength="100" placeholder="010-0000-0000" value="${esc(p.mobile_phone||'')}"></td>
+      </tr>
+
+      <tr>
+        <td class="rl">소속<span class="req">*</span></td>
+        <td><input class="form-input" id="f_org" maxlength="200" placeholder="소속 기관명" value="${esc(p.organization||'')}"></td>
+        <td class="rl">직급<span class="req">*</span></td>
+        <td><input class="form-input" id="f_position" maxlength="100" placeholder="직급/직책" value="${esc(p.position||'')}"></td>
+      </tr>
+
+      <tr>
+        <td class="rl">소속 전화</td>
+        <td><input class="form-input" id="f_office_phone" maxlength="100" placeholder="02-0000-0000" value="${esc(p.office_phone||'')}"></td>
+        <td class="rl">Vendor</td>
+        <td><input class="form-input" id="f_vendor" maxlength="20" readonly value="${esc(p.vendor||'')}" style="background:#f0f0f0;color:#888;cursor:default;"></td>
+      </tr>
+
+      <tr>
+        <td class="rl">소속 주소</td>
+        <td colspan="3"><input class="form-input" id="f_office_addr" maxlength="300" placeholder="소속 주소" value="${esc(p.office_address||'')}"></td>
+      </tr>
+
+      <tr>
+        <td class="rl" style="vertical-align:top;padding-top:14px;">홈페이지</td>
+        <td colspan="3" style="padding:8px 10px;">
+          <table class="sub-table">
+            <thead>
+              <tr>
+                <th style="width:36%;">명칭</th>
+                <th>URL</th>
+                <th style="width:76px;text-align:center;">추가/삭제</th>
+              </tr>
+            </thead>
+            <tbody id="homepage-body">${hpRows}</tbody>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="rl" style="vertical-align:top;padding-top:14px;">학력<span class="req">*</span></td>
+        <td colspan="3" style="padding:8px 10px;">
+          <table class="sub-table">
+            <thead>
+              <tr>
+                <th style="width:110px;">구분</th>
+                <th>학교명</th>
+                <th>학과</th>
+                <th>전공</th>
+                <th style="width:76px;text-align:center;">추가/삭제</th>
+              </tr>
+            </thead>
+            <tbody id="education-body">${eduRows}</tbody>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="rl" style="vertical-align:top;padding-top:12px;">첨부 파일</td>
+        <td colspan="3" style="padding:8px 10px;">
+          <input type="file" id="attachment-input" multiple style="display:none;" onchange="handleAttachmentSelect(this)">
+          <button type="button" class="btn btn-secondary" style="font-size:12.5px;padding:5px 14px;" onclick="document.getElementById('attachment-input').click()">
+            <i class="fa-solid fa-paperclip"></i> 파일 선택
+          </button>
+          <div class="attach-list" id="attachment-list"></div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- ── 경력 및 역량 ─────────────────────────── -->
+    <div class="sec-hdr">경력 및 역량</div>
+    <table class="reg-table" style="padding:4px 12px;">
+      <colgroup><col style="width:110px"><col></colgroup>
+
+      <tr>
+        <td class="rl" style="vertical-align:top;padding-top:14px;">주요 경력<span class="req">*</span></td>
+        <td style="padding:8px 10px;">
+          <table class="sub-table">
+            <thead>
+              <tr>
+                <th style="width:100px;">구분</th>
+                <th>기업/기관명</th>
+                <th style="text-align:center;width:100px;">시작 년도<span class="req">*</span></th>
+                <th style="text-align:center;width:76px;">시작 월</th>
+                <th style="text-align:center;width:100px;">종료 년도<span class="req">*</span></th>
+                <th style="text-align:center;width:76px;">종료 월</th>
+                <th style="width:76px;text-align:center;">추가/삭제</th>
+              </tr>
+            </thead>
+            <tbody id="career-body">${careerRows}</tbody>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="rl" style="vertical-align:top;padding-top:14px;">출강</td>
+        <td style="padding:8px 10px;">
+          <table class="sub-table">
+            <thead>
+              <tr>
+                <th style="width:32%;">기업/기관명</th>
+                <th>주제</th>
+                <th style="width:76px;text-align:center;">추가/삭제</th>
+              </tr>
+            </thead>
+            <tbody id="lecture-body">${lectureRows}</tbody>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="rl" style="vertical-align:top;padding-top:10px;">전문 역량<span class="req">*</span></td>
+        <td style="padding:6px 10px;">
+          <textarea class="form-textarea" id="f_expertise" rows="4" maxlength="300" placeholder="전문 역량을 입력하세요.">${esc(p.expertise||'')}</textarea>
+        </td>
+      </tr>
+
+      <tr>
+        <td class="rl" style="vertical-align:top;padding-top:10px;">강의 분야<span class="req">*</span></td>
+        <td style="padding:6px 10px;">
+          <input class="form-input" id="f_lecture_field" maxlength="300" placeholder="강의 분야 키워드를 입력하세요." value="${esc(p.lecture_field||'')}">
+        </td>
+      </tr>
+    </table>
+
+    <!-- ── 강사 사진 ─────────────────────────────── -->
+    <div class="sec-hdr">강사 사진</div>
+    <table class="reg-table" style="padding:4px 12px;">
+      <colgroup><col style="width:110px"><col></colgroup>
+      <tr>
+        <td class="rl">강사 사진</td>
+        <td style="padding:10px;">
+          <div style="display:flex;align-items:center;gap:14px;">
+            <input type="file" id="profile-input" accept="image/*" style="display:none;" onchange="handleProfileImage(this)">
+            <button type="button" class="btn btn-secondary" style="font-size:12.5px;padding:5px 14px;" onclick="document.getElementById('profile-input').click()">
+              <i class="fa-solid fa-image"></i> 파일 선택
+            </button>
+            <div id="profile-placeholder" style="font-size:12px;color:#aaa;${profileImageBase64?'display:none;':''}">사진을 선택해주세요 (3MB 이하)</div>
+            <img id="profile-img-preview" class="profile-preview ${profileImageBase64?'visible':''}"
+                 src="${profileImageBase64||''}" alt="강사 사진">
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- ── 개인정보 동의 ──────────────────────────── -->
+    <div class="sec-hdr">개인정보 동의</div>
+    <div style="padding:12px 24px 0;">
+      <div class="privacy-box">
+        <div class="privacy-box-header">
+          <span><i class="fa-solid fa-shield-halved" style="margin-right:6px;"></i>개인정보 수집 및 이용 동의</span>
+        </div>
+        <div class="privacy-box-body">
+          본 동의서는 사외 강사 등록 및 관리를 위한 개인정보 수집·이용에 관한 사항을 안내합니다.
+          <ol>
+            <li><b>수집 항목:</b> 성명, 생년월일, 이메일, 연락처, 소속, 직급, 경력사항 등 강사 등록에 필요한 정보</li>
+            <li><b>이용 목적:</b> 강사 관리, 강의 배정, 강사료 처리, 교육 운영</li>
+            <li><b>보유 기간:</b> 강사 등록일로부터 계약 종료 후 3년</li>
+            <li><b>동의 거부 권리:</b> 동의를 거부할 수 있으나, 미동의 시 강사 등록이 제한됩니다.</li>
+          </ol>
+        </div>
+        <div class="privacy-check-row">
+          <input type="checkbox" id="f_privacy" ${p.privacy_consent?'checked':''}>
+          <label for="f_privacy">위 개인정보 수집 및 이용에 동의합니다.</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 저장 버튼 ─────────────────────────────── -->
+    <div class="form-footer">
+      <button type="button" class="btn btn-secondary" onclick="cancelEdit()">
+        <i class="fa-solid fa-xmark"></i> 취소
+      </button>
+      <button type="button" class="btn btn-success" onclick="saveInstructor()">
+        <i class="fa-solid fa-floppy-disk"></i> 저장
+      </button>
+    </div>
+  </div>`;
+}
+
+function showForm(prefill) {
+  const p = prefill || {};
+  attachmentState = (p.attachments || []).map(a => ({ file_name: a.file_name, file_size: a.file_size, is_new: false }));
+  profileImageBase64 = p.profile_image_url || null;
+
+  document.getElementById('content-area').innerHTML = buildFormHtml(p);
+  renderAttachments();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VIEW HTML
+══════════════════════════════════════════════════════════════ */
+function buildViewHtml(d) {
+  const hpHtml = d.homepages && d.homepages.length > 0
+    ? `<table class="view-sub-table">
+        <thead><tr><th style="width:36%">명칭</th><th>URL</th></tr></thead>
+        <tbody>${d.homepages.map(h=>`<tr><td>${esc(h.hp_name||'')}</td><td>${esc(h.hp_url||'')}</td></tr>`).join('')}</tbody>
+       </table>`
+    : '<span style="color:#aaa;font-size:12.5px;">없음</span>';
+
+  const eduHtml = d.educations && d.educations.length > 0
+    ? `<table class="view-sub-table">
+        <thead><tr><th style="width:110px">구분</th><th>학교명</th><th>학과</th><th>전공</th></tr></thead>
+        <tbody>${d.educations.map(e=>`<tr><td>${esc(e.edu_type||'')}</td><td>${esc(e.school_name||'')}</td><td>${esc(e.department||'')}</td><td>${esc(e.major||'')}</td></tr>`).join('')}</tbody>
+       </table>`
+    : '<span style="color:#aaa;font-size:12.5px;">없음</span>';
+
+  const attachHtml = d.attachments && d.attachments.length > 0
+    ? d.attachments.map(a=>`<div class="attach-item" style="max-width:360px;">
+        <i class="fa-solid fa-file" style="color:#888;font-size:11px;flex-shrink:0;"></i>
+        <span class="attach-name">${esc(a.file_name||'')}</span>
+        <span class="attach-size">${fmtSize(a.file_size)}</span>
+      </div>`).join('')
+    : '<span style="color:#aaa;font-size:12.5px;">없음</span>';
+
+  const careerHtml = d.careers && d.careers.length > 0
+    ? `<table class="view-sub-table">
+        <thead>
+          <tr>
+            <th style="width:100px">구분</th><th>기업/기관명</th>
+            <th colspan="2" style="text-align:center">시작</th>
+            <th colspan="2" style="text-align:center">종료</th>
+          </tr>
+        </thead>
+        <tbody>${d.careers.map(c=>`<tr>
+          <td>${esc(c.career_type||'')}</td>
+          <td>${esc(c.company_name||'')}</td>
+          <td style="text-align:center;width:90px;">${esc(c.start_year||'')}</td>
+          <td style="text-align:center;width:65px;">${esc(c.start_month||'')}</td>
+          <td style="text-align:center;width:90px;">${esc(c.end_year||'')}</td>
+          <td style="text-align:center;width:65px;">${esc(c.end_month||'')}</td>
+        </tr>`).join('')}</tbody>
+       </table>`
+    : '<span style="color:#aaa;font-size:12.5px;">없음</span>';
+
+  const lectureHtml = d.lectures && d.lectures.length > 0
+    ? `<table class="view-sub-table">
+        <thead><tr><th style="width:32%">기업/기관명</th><th>주제</th></tr></thead>
+        <tbody>${d.lectures.map(l=>`<tr><td>${esc(l.company_name||'')}</td><td>${esc(l.topic||'')}</td></tr>`).join('')}</tbody>
+       </table>`
+    : '<span style="color:#aaa;font-size:12.5px;">없음</span>';
+
+  return `
+  <div class="content-card">
+    <div class="content-card-header">
+      <h2><i class="fa-solid fa-user-tie" style="margin-right:8px;"></i>강사 정보</h2>
+      <button class="btn btn-secondary" style="font-size:12px;padding:6px 14px;" onclick="editInstructor()">
+        <i class="fa-solid fa-pen"></i> 수정
+      </button>
+    </div>
+
+    <!-- 기본 정보 -->
+    <div class="sec-hdr">기본 정보</div>
+    <!-- 사진 + 6행 블록 (소속 전화·소속 주소 포함) -->
+    <table class="view-table" style="padding:4px 0 0;">
+      <colgroup>
+        <col style="width:214px">
+        <col style="width:100px">
+        <col>
+        <col style="width:100px">
+        <col>
+      </colgroup>
+      <tr>
+        <td rowspan="6" style="text-align:left;vertical-align:middle;padding:12px 20px 12px 24px;">
+          ${d.profile_image_url
+            ? `<img src="${esc(d.profile_image_url)}" alt="강사 사진" style="width:166px;height:200px;object-fit:cover;border-radius:8px;border:1px solid #ddd;">`
+            : `<div style="width:166px;height:200px;background:#e5e7eb;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;"><i class="fa-solid fa-user" style="font-size:60px;color:#9ca3af;"></i></div>`}
+        </td>
+        <td class="view-label">성명</td><td class="view-value">${esc(d.instructor_name||'')}</td>
+        <td class="view-label">강사 유형</td><td class="view-value">${esc(d.instructor_type||'')}</td>
+      </tr>
+      <tr>
+        <td class="view-label">생년월일</td>
+        <td class="view-value">${[d.birth_year,d.birth_month,d.birth_day].filter(Boolean).join(' / ')}</td>
+        <td class="view-label">성별</td><td class="view-value">${esc(d.gender||'')}</td>
+      </tr>
+      <tr>
+        <td class="view-label">이메일</td><td class="view-value">${esc(d.email||'')}</td>
+        <td class="view-label">휴대전화</td><td class="view-value">${esc(d.mobile_phone||'')}</td>
+      </tr>
+      <tr>
+        <td class="view-label">소속</td><td class="view-value">${esc(d.organization||'')}</td>
+        <td class="view-label">직급</td><td class="view-value">${esc(d.position||'')}</td>
+      </tr>
+      <tr>
+        <td class="view-label">소속 전화</td><td class="view-value">${esc(d.office_phone||'')}</td>
+        <td class="view-label">Vendor</td><td class="view-value">${esc(d.vendor||'')}</td>
+      </tr>
+      <tr>
+        <td class="view-label">소속 주소</td>
+        <td class="view-value" colspan="3">${esc(d.office_address||'')}</td>
+      </tr>
+    </table>
+    <!-- 홈페이지·학력·첨부 파일 — 경력 및 역량과 동일한 110px 레이블 컬럼으로 정렬 -->
+    <table class="view-table" style="padding:0 12px 4px;">
+      <colgroup><col style="width:110px"><col></colgroup>
+      <tr>
+        <td class="view-label" style="vertical-align:top;padding-top:12px;">홈페이지</td>
+        <td class="view-value">${hpHtml}</td>
+      </tr>
+      <tr>
+        <td class="view-label" style="vertical-align:top;padding-top:12px;">학력</td>
+        <td class="view-value">${eduHtml}</td>
+      </tr>
+      <tr>
+        <td class="view-label" style="vertical-align:top;padding-top:12px;">첨부 파일</td>
+        <td class="view-value"><div class="attach-list">${attachHtml}</div></td>
+      </tr>
+    </table>
+
+    <!-- 경력 및 역량 -->
+    <div class="sec-hdr">경력 및 역량</div>
+    <table class="view-table" style="padding:4px 12px;">
+      <colgroup><col style="width:110px"><col></colgroup>
+      <tr>
+        <td class="view-label" style="vertical-align:top;padding-top:12px;">주요 경력</td>
+        <td class="view-value">${careerHtml}</td>
+      </tr>
+      <tr>
+        <td class="view-label" style="vertical-align:top;padding-top:12px;">출강</td>
+        <td class="view-value">${lectureHtml}</td>
+      </tr>
+      <tr>
+        <td class="view-label" style="vertical-align:top;padding-top:8px;">전문 역량</td>
+        <td class="view-value" style="white-space:pre-wrap;">${esc(d.expertise||'')}</td>
+      </tr>
+      <tr>
+        <td class="view-label" style="vertical-align:top;padding-top:8px;">강의 분야</td>
+        <td class="view-value" style="white-space:pre-wrap;">${esc(d.lecture_field||'')}</td>
+      </tr>
+    </table>
+
+    <!-- 개인정보 동의 -->
+    <div class="sec-hdr">개인정보 동의</div>
+    <div style="padding:12px 24px 20px;">
+      <div class="privacy-box">
+        <div class="privacy-box-header" style="display:flex;align-items:center;justify-content:space-between;">
+          <span><i class="fa-solid fa-shield-halved" style="margin-right:6px;"></i>개인정보 수집 및 이용 동의</span>
+          <button type="button" style="padding:3px 12px;font-size:12px;font-weight:600;border:1px solid #a78bfa;border-radius:5px;background:#fff;color:#7c3aed;cursor:pointer;font-family:inherit;">연장</button>
+        </div>
+        <div class="privacy-box-body">
+          본 동의서는 사외 강사 등록 및 관리를 위한 개인정보 수집·이용에 관한 사항을 안내합니다.
+          <ol>
+            <li><b>수집 항목:</b> 성명, 생년월일, 이메일, 연락처, 소속, 직급, 경력사항 등 강사 등록에 필요한 정보</li>
+            <li><b>이용 목적:</b> 강사 관리, 강의 배정, 강사료 처리, 교육 운영</li>
+            <li><b>보유 기간:</b> 강사 등록일로부터 계약 종료 후 3년</li>
+            <li><b>동의 거부 권리:</b> 동의를 거부할 수 있으나, 미동의 시 강사 등록이 제한됩니다.</li>
+          </ol>
+        </div>
+        <div class="privacy-check-row">
+          <input type="checkbox" id="v_privacy" ${d.privacy_consent?'checked':''} disabled>
+          <label for="v_privacy">위 개인정보 수집 및 이용에 동의합니다.</label>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function showView(data) {
+  document.getElementById('content-area').innerHTML = buildViewHtml(data);
+}
 
 /* ══════════════════════════════════════════════════════════════
    DB: Load Instructor
@@ -956,37 +1065,20 @@ async function loadInstructor() {
   showSpinner();
   try {
     const id = localStorage.getItem('instructor_id');
-
-    // 1) localStorage에 ID가 있으면 해당 레코드 우선 조회
     if (id) {
-      const { data, error } = await db
-        .from('instructors')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (!error && data) {
-        showView(data);
-        return;
-      }
-      // ID가 있어도 DB에 없으면 localStorage 초기화 후 전체 재조회
+      const data = await loadAllData(id);
+      if (data) { showView(data); return; }
       localStorage.removeItem('instructor_id');
+      currentInstructorId = null;
     }
-
-    // 2) localStorage에 ID가 없거나 조회 실패 시 DB에서 최신 레코드 조회
-    const { data: latest, error: latestError } = await db
-      .from('instructors')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!latestError && latest) {
+    const { data: latest } = await db.from('instructors').select('id')
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    if (latest) {
       localStorage.setItem('instructor_id', latest.id);
-      showView(latest);
-    } else {
-      showForm(null);
+      const data = await loadAllData(latest.id);
+      if (data) { showView(data); return; }
     }
+    showForm(null);
   } catch (err) {
     showToast('데이터 로드 중 오류가 발생했습니다.', 'error');
     showForm(null);
@@ -995,894 +1087,278 @@ async function loadInstructor() {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   DB: Save Instructor
-══════════════════════════════════════════════════════════════ */
-async function saveInstructor(formData) {
-  const id = localStorage.getItem('instructor_id');
-  showSpinner();
+async function loadAllData(instrId) {
   try {
-    let result;
-    if (id) {
-      result = await db
-        .from('instructors')
-        .update(formData)
-        .eq('id', id)
-        .select()
-        .single();
-    } else {
-      result = await db
-        .from('instructors')
-        .insert(formData)
-        .select()
-        .single();
-    }
-
-    if (result.error) {
-      throw result.error;
-    }
-
-    if (result.data) {
-      localStorage.setItem('instructor_id', result.data.id);
-      showToast('강사 정보가 성공적으로 저장되었습니다.', 'success');
-      showView(result.data);
-    }
-  } catch (err) {
-    console.error('Save error:', err);
-    showToast('저장 중 오류가 발생했습니다: ' + (err.message || '알 수 없는 오류'), 'error');
-  } finally {
-    hideSpinner();
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   Privacy Consent HTML
-══════════════════════════════════════════════════════════════ */
-function privacyBoxHTML(checked = false) {
-  return `
-  <div class="privacy-box">
-    <div class="privacy-box-header">[ 개인정보 수집 및 이용 동의 ]</div>
-    <div class="privacy-box-body">
-      <p>회사는 사외 강사 등록 및 관리, 강의 운영을 위해 아래와 같이 개인정보를 수집·이용합니다.</p>
-      <br/>
-      <ol>
-        <li><strong>수집 항목</strong>
-          <ul>
-            <li>필수항목: 이름, 생년월일, 연락처(휴대전화번호, 이메일), 소속(회사/기관), 전문분야</li>
-            <li>선택항목: 경력사항, 이력서, 포트폴리오 등</li>
-          </ul>
-        </li>
-        <li><strong>수집 및 이용 목적</strong>
-          <ul>
-            <li>사외 강사 등록 및 본인 확인</li>
-            <li>강의 배정 및 운영 관리</li>
-            <li>강사료 지급 및 세무 처리</li>
-            <li>교육 품질 관리 및 커뮤니케이션</li>
-          </ul>
-        </li>
-        <li><strong>보유 및 이용 기간</strong>
-          <ul>
-            <li>강사 등록일로부터 계약 종료 후 3년까지 보관</li>
-            <li>관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관</li>
-          </ul>
-        </li>
-        <li><strong>동의 거부 권리 및 불이익 안내</strong>
-          <ul>
-            <li>이용자는 개인정보 수집 및 이용에 대한 동의를 거부할 권리가 있습니다.</li>
-            <li>단, 필수항목에 대한 동의 거부 시 사외 강사 등록을 제한할 수 있습니다.</li>
-          </ul>
-        </li>
-      </ol>
-    </div>
-    <div class="privacy-check-row">
-      <input type="checkbox" id="privacy_consent_check" name="privacy_consent_check"
-             ${checked ? 'checked' : ''} />
-      <label for="privacy_consent_check">개인정보 수집 및 이용에 동의합니다. (필수)</label>
-    </div>
-  </div>`;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   FORM Mode (new or edit)
-══════════════════════════════════════════════════════════════ */
-async function showForm(prefill) {
-  currentMode = prefill ? 'edit' : 'form';
-  currentData = prefill;
-  imageBase64 = prefill ? prefill.profile_image || null : null;
-
-  // 업체 목록 조회 후 소속기관 매칭 여부 판단
-  let orgFromCompany = false;
-  if (prefill && prefill.organization) {
-    try {
-      const { data } = await db
-        .from('tax_invoice_companies')
-        .select('id, company_name, address')
-        .order('company_name');
-      taxCompaniesCache = data || [];
-      orgFromCompany = taxCompaniesCache.some(c => c.company_name === prefill.organization);
-    } catch { orgFromCompany = false; }
-  }
-
-  const p = prefill || {};
-  const isEdit = !!prefill;
-
-  const html = `
-  <div class="content-card">
-    <div class="content-card-header">
-      <h2>${isEdit ? esc(p.instructor_name || '') + ' 사외강사 프로파일 수정' : '사외 강사 등록'}</h2>
-      ${isEdit ? `<button class="btn btn-secondary" onclick="showView(currentData)" type="button"><i class="fa-solid fa-xmark" aria-hidden="true"></i> 취소</button>` : ''}
-    </div>
-    <div class="content-card-body">
-      <form id="instructor-form" novalidate>
-
-        <!-- ── 기본 정보 ── -->
-        <div class="section-label">기본 정보</div>
-        <table class="form-table" role="presentation">
-          <colgroup>
-            <col style="width:140px"/>
-            <col/>
-            <col style="width:140px"/>
-            <col/>
-          </colgroup>
-
-          <tr>
-            <td class="label-cell">강사명<span class="required" aria-label="필수">*</span></td>
-            <td class="input-cell">
-              <input class="form-input" type="text" id="instructor_name" name="instructor_name"
-                     maxlength="100" required placeholder="강사명 입력"
-                     value="${esc(p.instructor_name || '')}" autocomplete="name" />
-            </td>
-            <td class="label-cell">강사영문명</td>
-            <td class="input-cell">
-              <input class="form-input" type="text" id="instructor_name_en" name="instructor_name_en"
-                     maxlength="100" placeholder="English Name"
-                     value="${esc(p.instructor_name_en || '')}" />
-            </td>
-          </tr>
-
-          <tr>
-            <td class="label-cell">국적</td>
-            <td class="input-cell">
-              <select class="form-select" id="nationality" name="nationality">
-                <option value="">선택</option>
-                ${buildOptions(NATIONALITIES, p.nationality || '')}
-              </select>
-            </td>
-            <td class="label-cell">성별</td>
-            <td class="input-cell">
-              <select class="form-select" id="gender" name="gender">
-                <option value="">선택</option>
-                ${buildOptions(GENDERS, p.gender || '')}
-              </select>
-            </td>
-          </tr>
-
-          <tr>
-            <td class="label-cell">소속기관</td>
-            <td class="input-cell">
-              <div style="display:flex;gap:8px;align-items:center;">
-                <input class="form-input" type="text" id="organization" name="organization"
-                       maxlength="100" placeholder="소속기관명 또는 업체 버튼으로 선택"
-                       value="${esc(p.organization || '')}" style="flex:1;"
-                       ${orgFromCompany ? 'readonly' : ''} />
-                <button type="button" class="btn btn-secondary" style="white-space:nowrap;padding:7px 14px;font-size:13px;" onclick="openOrgPickerModal()">
-                  <i class="fa-solid fa-building"></i> 업체
-                </button>
-              </div>
-            </td>
-            <td class="label-cell">부서</td>
-            <td class="input-cell">
-              <input class="form-input" type="text" id="department" name="department"
-                     maxlength="100" placeholder="부서명"
-                     value="${esc(p.department || '')}" />
-            </td>
-          </tr>
-
-          <tr>
-            <td class="label-cell">직급</td>
-            <td class="input-cell">
-              <input class="form-input" type="text" id="position" name="position"
-                     maxlength="100" placeholder="직급"
-                     value="${esc(p.position || '')}" />
-            </td>
-            <td class="label-cell">생년월일</td>
-            <td class="input-cell">
-              <input class="form-input" type="date" id="birth_date" name="birth_date"
-                     value="${esc(p.birth_date || '')}" />
-            </td>
-          </tr>
-
-          <!-- Full width: 회사주소 -->
-          <tr>
-            <td class="label-cell">회사주소</td>
-            <td class="full-width-cell" colspan="3">
-              <input class="form-input" type="text" id="company_address" name="company_address"
-                     maxlength="200" placeholder="회사 주소 입력"
-                     value="${esc(p.company_address || '')}"
-                     ${orgFromCompany ? 'readonly' : ''} />
-            </td>
-          </tr>
-
-          <!-- Full width: 홈페이지 -->
-          <tr>
-            <td class="label-cell">홈페이지</td>
-            <td class="full-width-cell" colspan="3">
-              <input class="form-input" type="text" id="homepage" name="homepage"
-                     maxlength="200" placeholder="https://"
-                     value="${esc(p.homepage || '')}" />
-            </td>
-          </tr>
-
-          <tr>
-            <td class="label-cell">이메일</td>
-            <td class="input-cell">
-              <input class="form-input" type="email" id="email" name="email"
-                     maxlength="100" placeholder="example@email.com"
-                     value="${esc(p.email || '')}" />
-            </td>
-            <td class="label-cell">회사전화</td>
-            <td class="input-cell">
-              <input class="form-input" type="text" id="company_phone" name="company_phone"
-                     maxlength="100" placeholder="02-0000-0000"
-                     value="${esc(p.company_phone || '')}" />
-            </td>
-          </tr>
-
-          <tr>
-            <td class="label-cell">강사 유형</td>
-            <td class="input-cell">
-              <select class="form-select" id="instructor_type" name="instructor_type">
-                <option value="">선택</option>
-                ${buildOptions(INSTRUCTOR_TYPES, p.instructor_type || '')}
-              </select>
-            </td>
-            <td class="label-cell">핸드폰</td>
-            <td class="input-cell">
-              <input class="form-input" type="text" id="mobile_phone" name="mobile_phone"
-                     maxlength="100" placeholder="010-0000-0000"
-                     value="${esc(p.mobile_phone || '')}" />
-            </td>
-          </tr>
-
-          <tr>
-            <td class="label-cell">최종 학력</td>
-            <td class="input-cell">
-              <input class="form-input" type="text" id="education" name="education"
-                     maxlength="100" placeholder="최종 학력"
-                     value="${esc(p.education || '')}" />
-            </td>
-            <td class="label-cell">전공</td>
-            <td class="input-cell">
-              <input class="form-input" type="text" id="major" name="major"
-                     maxlength="100" placeholder="전공"
-                     value="${esc(p.major || '')}" />
-            </td>
-          </tr>
-        </table>
-
-        <!-- ── 경력 및 역량 ── -->
-        <div class="section-label">경력 및 역량</div>
-        <table class="form-table" role="presentation">
-          <colgroup><col style="width:140px"/><col/></colgroup>
-
-          <tr>
-            <td class="label-cell">주요 경력</td>
-            <td class="full-width-cell">
-              <textarea class="form-textarea" id="career" name="career"
-                        maxlength="300" rows="4" placeholder="주요 경력을 입력하세요 (최대 300자)">${esc(p.career || '')}</textarea>
-            </td>
-          </tr>
-          <tr>
-            <td class="label-cell">전문 역량</td>
-            <td class="full-width-cell">
-              <textarea class="form-textarea" id="expertise" name="expertise"
-                        maxlength="300" rows="4" placeholder="전문 역량을 입력하세요 (최대 300자)">${esc(p.expertise || '')}</textarea>
-            </td>
-          </tr>
-          <tr>
-            <td class="label-cell">강의 분야</td>
-            <td class="full-width-cell">
-              <textarea class="form-textarea" id="lecture_field" name="lecture_field"
-                        maxlength="300" rows="4" placeholder="강의 분야를 입력하세요 (최대 300자)">${esc(p.lecture_field || '')}</textarea>
-            </td>
-          </tr>
-        </table>
-
-        <!-- ── 강사 사진 ── -->
-        <div class="section-label">강사 사진</div>
-        <table class="form-table" role="presentation">
-          <colgroup><col style="width:140px"/><col/></colgroup>
-          <tr>
-            <td class="label-cell">강사 사진</td>
-            <td class="full-width-cell">
-              <div id="image-preview-wrap">
-                <div id="image-placeholder" class="${imageBase64 ? 'hidden' : ''}">
-                  <i class="fa-solid fa-cloud-arrow-up fa-2x" style="color:#c4b5fd" aria-hidden="true"></i>
-                  <span>사진 없음</span>
-                </div>
-                <img id="image-preview" class="${imageBase64 ? 'visible' : ''}"
-                     src="${imageBase64 ? esc(imageBase64) : ''}"
-                     alt="강사 사진 미리보기" />
-                <div class="file-input-wrap">
-                  <input class="form-input" type="file" id="profile_image" name="profile_image"
-                         accept="image/*" style="padding:4px;" />
-                  <span class="file-hint">JPG, PNG, GIF 등 이미지 파일 (미리보기 후 저장 시 DB에 저장됩니다)</span>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </table>
-
-        <!-- ── 개인정보 동의 ── -->
-        <div class="section-label">개인정보 동의</div>
-        ${privacyBoxHTML(p.privacy_consent === 'Y')}
-
-        <!-- ── Footer ── -->
-        <div class="form-footer">
-          <button class="btn btn-success" type="submit" id="save-btn">
-            <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> 저장
-          </button>
-        </div>
-
-      </form>
-    </div>
-  </div>`;
-
-  document.getElementById('content-area').innerHTML = html;
-
-  // Image file input → base64 preview
-  document.getElementById('profile_image').addEventListener('change', function () {
-    const file = this.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      showToast('이미지 파일만 업로드 가능합니다.', 'warning');
-      this.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      imageBase64 = e.target.result;
-      const preview = document.getElementById('image-preview');
-      const placeholder = document.getElementById('image-placeholder');
-      preview.src = imageBase64;
-      preview.classList.add('visible');
-      if (placeholder) placeholder.style.display = 'none';
+    const [instrRes, hpRes, eduRes, attachRes, careerRes, lectureRes] = await Promise.all([
+      db.from('instructors').select('*').eq('id', instrId).single(),
+      db.from('instructor_homepages').select('*').eq('instructor_id', instrId).order('sort_order'),
+      db.from('instructor_educations').select('*').eq('instructor_id', instrId).order('sort_order'),
+      db.from('instructor_attachments').select('*').eq('instructor_id', instrId).order('sort_order'),
+      db.from('instructor_careers').select('*').eq('instructor_id', instrId).order('sort_order'),
+      db.from('instructor_lecture_records').select('*').eq('instructor_id', instrId).order('sort_order'),
+    ]);
+    if (instrRes.error || !instrRes.data) return null;
+    currentInstructorId = instrId;
+    return {
+      ...instrRes.data,
+      homepages:   hpRes.data || [],
+      educations:  eduRes.data || [],
+      attachments: attachRes.data || [],
+      careers:     careerRes.data || [],
+      lectures:    lectureRes.data || [],
     };
-    reader.readAsDataURL(file);
+  } catch { return null; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   소속기관 업체 선택 로직
+══════════════════════════════════════════════════════════════ */
+async function initOrgFieldState(p) {
+  const orgEl  = document.getElementById('f_org');
+  const addrEl = document.getElementById('f_office_addr');
+  if (!orgEl) return;
+
+  if (!p || !p.organization) {
+    // 신규 등록: 직접 입력 불가, 업체 버튼으로만 입력
+    setOrgReadonly(true);
+    orgFromList = false;
+    return;
+  }
+
+  // 수정 모드: 저장된 소속기관이 업체 목록에 있는지 확인
+  try {
+    const { data } = await db.from('tax_invoice_companies')
+      .select('id').eq('company_name', p.organization);
+    if (data && data.length > 0) {
+      setOrgReadonly(true);
+      orgFromList = true;
+    } else {
+      setOrgReadonly(false);
+      orgFromList = false;
+    }
+  } catch {
+    setOrgReadonly(false);
+    orgFromList = false;
+  }
+}
+
+function setOrgReadonly(readonly) {
+  const orgEl  = document.getElementById('f_org');
+  const addrEl = document.getElementById('f_office_addr');
+  [orgEl, addrEl].forEach(el => {
+    if (!el) return;
+    el.readOnly = readonly;
+    el.style.background = readonly ? '#f0f0f0' : '';
+    el.style.color      = readonly ? '#555'    : '';
+    el.style.cursor     = readonly ? 'default' : '';
   });
-
-  // Form submit
-  document.getElementById('instructor-form').addEventListener('submit', handleFormSubmit);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   Form Submit Handler
-══════════════════════════════════════════════════════════════ */
-async function handleFormSubmit(e) {
-  e.preventDefault();
+async function openOrgSelectPopup() {
+  showSpinner();
+  let companies = [];
+  try {
+    const { data } = await db.from('tax_invoice_companies').select('*').order('company_name');
+    companies = data || [];
+  } finally { hideSpinner(); }
 
-  const nameVal = document.getElementById('instructor_name').value.trim();
-  if (!nameVal) {
-    showToast('강사명은 필수 입력 항목입니다.', 'warning');
-    document.getElementById('instructor_name').focus();
-    return;
-  }
-
-  const consentCheck = document.getElementById('privacy_consent_check');
-  if (!consentCheck.checked) {
-    showToast('개인정보 수집 및 이용 동의는 필수입니다.', 'warning');
-    consentCheck.focus();
-    return;
-  }
-
-  const formData = {
-    instructor_name:    document.getElementById('instructor_name').value.trim(),
-    instructor_name_en: document.getElementById('instructor_name_en').value.trim(),
-    nationality:        document.getElementById('nationality').value,
-    gender:             document.getElementById('gender').value,
-    organization:       document.getElementById('organization').value.trim(),
-    department:         document.getElementById('department').value.trim(),
-    position:           document.getElementById('position').value.trim(),
-    birth_date:         document.getElementById('birth_date').value || null,
-    company_address:    document.getElementById('company_address').value.trim(),
-    homepage:           document.getElementById('homepage').value.trim(),
-    email:              document.getElementById('email').value.trim(),
-    company_phone:      document.getElementById('company_phone').value.trim(),
-    instructor_type:    document.getElementById('instructor_type').value,
-    mobile_phone:       document.getElementById('mobile_phone').value.trim(),
-    education:          document.getElementById('education').value.trim(),
-    major:              document.getElementById('major').value.trim(),
-    career:             document.getElementById('career').value.trim(),
-    expertise:          document.getElementById('expertise').value.trim(),
-    lecture_field:      document.getElementById('lecture_field').value.trim(),
-    profile_image:      imageBase64 || null,
-    privacy_consent:    consentCheck.checked ? 'Y' : 'N',
-  };
-
-  await saveInstructor(formData);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   VIEW Mode
-══════════════════════════════════════════════════════════════ */
-function showView(data) {
-  currentMode = 'view';
-  currentData = data;
-
-  function val(v) { return v ? esc(v) : '<span style="color:#bbb">—</span>'; }
-
-  const consentBadge = data.privacy_consent === 'Y'
-    ? '<span class="consent-badge yes">동의</span>'
-    : '<span class="consent-badge no">미동의</span>';
-
-  const profileImgHTML = data.profile_image
-    ? `<img src="${esc(data.profile_image)}" alt="${esc(data.instructor_name)} 강사 사진" class="view-profile-img" />`
-    : '<span style="color:#bbb;font-size:13px;">사진 없음</span>';
+  const rows = companies.length > 0
+    ? companies.map(c => `
+        <tr style="cursor:pointer;" title="클릭하여 선택"
+            onclick="selectOrgCompany('${esc(c.company_name)}','${esc(c.address||'')}')">
+          <td>${esc(c.company_name)}</td>
+          <td>${esc(c.business_number||'—')}</td>
+          <td>${esc(c.ceo_name||'—')}</td>
+          <td>${esc(c.business_type||'—')}</td>
+          <td>${esc(c.address||'—')}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="5" class="empty-table">등록된 업체가 없습니다.</td></tr>`;
 
   const html = `
-  <div class="content-card">
-    <div class="content-card-header">
-      <h2>${esc(data.instructor_name || '')} 사외강사 프로파일</h2>
-      <button class="btn btn-primary" type="button" onclick="showForm(currentData)">
-        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> 수정
-      </button>
-    </div>
-    <div class="content-card-body">
-
-      <!-- ── 기본 정보 ── -->
-      <div class="section-label">기본 정보</div>
-      <table class="view-table" role="presentation">
-        <colgroup>
-          <col style="width:140px"/>
-          <col/>
-          <col style="width:140px"/>
-          <col/>
-        </colgroup>
-
-        <tr>
-          <td class="view-label">강사명</td>
-          <td class="view-value">${val(data.instructor_name)}</td>
-          <td class="view-label">강사영문명</td>
-          <td class="view-value">${val(data.instructor_name_en)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">국적</td>
-          <td class="view-value">${val(data.nationality)}</td>
-          <td class="view-label">성별</td>
-          <td class="view-value">${val(data.gender)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">소속기관</td>
-          <td class="view-value">${val(data.organization)}</td>
-          <td class="view-label">부서</td>
-          <td class="view-value">${val(data.department)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">직급</td>
-          <td class="view-value">${val(data.position)}</td>
-          <td class="view-label">생년월일</td>
-          <td class="view-value">${val(data.birth_date)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">회사주소</td>
-          <td class="view-value" colspan="3">${val(data.company_address)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">홈페이지</td>
-          <td class="view-value" colspan="3">
-            ${data.homepage
-              ? `<a href="${esc(data.homepage)}" target="_blank" rel="noopener noreferrer">${esc(data.homepage)}</a>`
-              : '<span style="color:#bbb">—</span>'}
-          </td>
-        </tr>
-        <tr>
-          <td class="view-label">이메일</td>
-          <td class="view-value">
-            ${data.email
-              ? `<a href="mailto:${esc(data.email)}">${esc(data.email)}</a>`
-              : '<span style="color:#bbb">—</span>'}
-          </td>
-          <td class="view-label">회사전화</td>
-          <td class="view-value">${val(data.company_phone)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">강사 유형</td>
-          <td class="view-value">${val(data.instructor_type)}</td>
-          <td class="view-label">핸드폰</td>
-          <td class="view-value">${val(data.mobile_phone)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">최종 학력</td>
-          <td class="view-value">${val(data.education)}</td>
-          <td class="view-label">전공</td>
-          <td class="view-value">${val(data.major)}</td>
-        </tr>
-      </table>
-
-      <!-- ── 경력 및 역량 ── -->
-      <div class="section-label">경력 및 역량</div>
-      <table class="view-table" role="presentation">
-        <colgroup><col style="width:140px"/><col/></colgroup>
-        <tr>
-          <td class="view-label">주요 경력</td>
-          <td class="view-value multiline">${val(data.career)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">전문 역량</td>
-          <td class="view-value multiline">${val(data.expertise)}</td>
-        </tr>
-        <tr>
-          <td class="view-label">강의 분야</td>
-          <td class="view-value multiline">${val(data.lecture_field)}</td>
-        </tr>
-      </table>
-
-      <!-- ── 강사 사진 ── -->
-      <div class="section-label">강사 사진</div>
-      <table class="view-table" role="presentation">
-        <colgroup><col style="width:140px"/><col/></colgroup>
-        <tr>
-          <td class="view-label">강사 사진</td>
-          <td class="view-value">${profileImgHTML}</td>
-        </tr>
-      </table>
-
-      <!-- ── 개인정보 동의 ── -->
-      <div class="section-label">개인정보 동의</div>
-      <table class="view-table" role="presentation">
-        <colgroup><col style="width:140px"/><col/></colgroup>
-        <tr>
-          <td class="view-label">동의 여부</td>
-          <td class="view-value">${consentBadge}</td>
-        </tr>
-      </table>
-      <div class="privacy-view-doc">
-        <p class="privacy-view-title">[ 개인정보 수집 및 이용 동의 ]</p>
-        <p class="privacy-view-intro">회사는 사외 강사 등록 및 관리, 강의 운영을 위해 아래와 같이 개인정보를 수집·이용합니다.</p>
-        <p class="privacy-view-section">1. 수집 항목</p>
-        <ul class="privacy-view-list">
-          <li>필수항목: 이름, 생년월일, 연락처(휴대전화번호, 이메일), 소속(회사/기관), 전문분야</li>
-          <li>선택항목: 경력사항, 이력서, 포트폴리오 등</li>
-        </ul>
-        <p class="privacy-view-section">2. 수집 및 이용 목적</p>
-        <ul class="privacy-view-list">
-          <li>사외 강사 등록 및 본인 확인</li>
-          <li>강의 배정 및 운영 관리</li>
-          <li>강사료 지급 및 세무 처리</li>
-          <li>교육 품질 관리 및 커뮤니케이션</li>
-        </ul>
-        <p class="privacy-view-section">3. 보유 및 이용 기간</p>
-        <ul class="privacy-view-list">
-          <li>강사 등록일로부터 계약 종료 후 3년까지 보관</li>
-          <li>관련 법령에 따라 보존이 필요한 경우 해당 기간 동안 보관</li>
-        </ul>
-        <p class="privacy-view-section">4. 동의 거부 권리 및 불이익 안내</p>
-        <ul class="privacy-view-list">
-          <li>이용자는 개인정보 수집 및 이용에 대한 동의를 거부할 권리가 있습니다.</li>
-          <li>단, 필수항목에 대한 동의 거부 시 사외 강사 등록을 제한할 수 있습니다.</li>
-        </ul>
-      </div>
-
-    </div>
-  </div>`;
-
-  document.getElementById('content-area').innerHTML = html;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   소속기관 - 세금계산서 업체 연동
-══════════════════════════════════════════════════════════════ */
-let taxCompaniesCache = [];
-
-async function initOrgFieldState(currentOrg, currentAddr) {
-  // 렌더링 시 이미 readonly로 시작 → DB 조회 후 직접입력이면 해제
-  try {
-    const { data } = await db
-      .from('tax_invoice_companies')
-      .select('id, company_name, address')
-      .order('company_name');
-    taxCompaniesCache = data || [];
-
-    const matched = taxCompaniesCache.find(c => c.company_name === currentOrg);
-    if (!matched) {
-      // 직접 입력했던 소속기관 → 잠금 해제
-      setOrgMode('free', currentOrg, currentAddr);
-    }
-    // 매칭되면 readonly 유지 (렌더링 시 이미 적용됨)
-  } catch { /* 오류 시 readonly 유지 */ }
-}
-
-async function openOrgPickerModal() {
-  showSpinner();
-  try {
-    const { data } = await db
-      .from('tax_invoice_companies')
-      .select('id, company_name, business_number, ceo_name, business_type, address')
-      .order('company_name');
-    taxCompaniesCache = data || [];
-  } catch {
-    taxCompaniesCache = [];
-  } finally {
-    hideSpinner();
-  }
-
-  const rows = taxCompaniesCache.length > 0
-    ? taxCompaniesCache.map(c => `
-      <tr class="org-picker-row" onclick="selectOrgFromPicker('${c.id}')" style="cursor:pointer;">
-        <td style="padding:10px 14px;border-bottom:1px solid #f0eeff;font-size:13px;font-weight:600;">${esc(c.company_name)}</td>
-        <td style="padding:10px 14px;border-bottom:1px solid #f0eeff;font-size:13px;color:#555;">${esc(c.business_number || '—')}</td>
-        <td style="padding:10px 14px;border-bottom:1px solid #f0eeff;font-size:13px;color:#555;">${esc(c.ceo_name || '—')}</td>
-        <td style="padding:10px 14px;border-bottom:1px solid #f0eeff;font-size:13px;color:#555;">${esc(c.business_type || '—')}</td>
-        <td style="padding:10px 14px;border-bottom:1px solid #f0eeff;font-size:13px;color:#555;">${esc(c.address || '—')}</td>
-      </tr>`).join('')
-    : `<tr><td colspan="5" style="padding:24px;text-align:center;color:#aaa;font-size:13px;">등록된 업체가 없습니다.</td></tr>`;
-
-  const modalHtml = `
-  <div class="modal-overlay active" id="org-picker-overlay" onclick="closeOrgPickerOnBackdrop(event)">
-    <div class="modal" role="dialog" aria-modal="true" style="width:860px;max-width:96vw;">
+  <div class="modal-overlay active" id="org-select-overlay" onclick="closeOrgSelectOnBackdrop(event)">
+    <div class="modal" style="width:760px;max-width:96vw;" role="dialog" aria-modal="true">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-building" style="margin-right:7px;"></i>세금계산서 업체 선택</h3>
-        <button class="modal-close" onclick="closeOrgPicker()" aria-label="닫기">&times;</button>
+        <h3><i class="fa-solid fa-building" style="margin-right:6px;"></i>업체 벤더 선택</h3>
+        <button class="modal-close" onclick="closeOrgSelect()">&times;</button>
       </div>
-      <div style="padding:16px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;">
-        <p style="font-size:13px;color:#666;margin:0;">업체를 선택하면 소속기관과 회사주소가 자동으로 입력됩니다.</p>
-        <button class="btn btn-secondary" onclick="selectOrgDirect()" style="white-space:nowrap;padding:6px 14px;font-size:13px;">
-          <i class="fa-solid fa-pen"></i> 직접 입력
-        </button>
-      </div>
-      <div style="max-height:320px;overflow-y:auto;margin:12px 0 0;">
-        <table style="width:100%;border-collapse:collapse;">
-          <thead>
-            <tr style="background:linear-gradient(90deg,#f0edff,#f8f6ff);">
-              <th style="padding:10px 14px;text-align:left;font-size:13px;font-weight:700;color:#5a4fcf;border-bottom:2px solid #ede8ff;">업체명 (상호)</th>
-              <th style="padding:10px 14px;text-align:left;font-size:13px;font-weight:700;color:#5a4fcf;border-bottom:2px solid #ede8ff;">사업자등록번호</th>
-              <th style="padding:10px 14px;text-align:left;font-size:13px;font-weight:700;color:#5a4fcf;border-bottom:2px solid #ede8ff;">대표자명</th>
-              <th style="padding:10px 14px;text-align:left;font-size:13px;font-weight:700;color:#5a4fcf;border-bottom:2px solid #ede8ff;">업태 / 종목</th>
-              <th style="padding:10px 14px;text-align:left;font-size:13px;font-weight:700;color:#5a4fcf;border-bottom:2px solid #ede8ff;">사업장 주소</th>
-            </tr>
-          </thead>
+      <div class="modal-body" style="padding:0;max-height:400px;overflow-y:auto;">
+        <table class="data-table" style="margin:0;">
+          <thead><tr>
+            <th>업체명(상호)</th>
+            <th>사업자등록번호</th>
+            <th>대표자명</th>
+            <th>업태/종목</th>
+            <th>사업장주소</th>
+          </tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>
-      <div class="modal-footer" style="justify-content:flex-end;">
-        <button class="btn btn-secondary" onclick="closeOrgPicker()">
-          <i class="fa-solid fa-xmark"></i> 닫기
+      <div class="modal-footer" style="justify-content:space-between;">
+        <button class="btn btn-secondary" onclick="enableDirectOrgInput()">
+          <i class="fa-solid fa-pencil"></i> 직접 입력
         </button>
-      </div>
-    </div>
-  </div>`;
-
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-  // 행 hover 효과
-  document.querySelectorAll('.org-picker-row').forEach(row => {
-    row.addEventListener('mouseenter', () => row.style.background = '#faf8ff');
-    row.addEventListener('mouseleave', () => row.style.background = '');
-  });
-}
-
-function selectOrgFromPicker(id) {
-  const company = taxCompaniesCache.find(c => c.id === id);
-  if (!company) return;
-  const orgInput  = document.getElementById('organization');
-  const addrInput = document.getElementById('company_address');
-  if (orgInput)  { orgInput.value = company.company_name; orgInput.readOnly = true; }
-  if (addrInput) { addrInput.value = company.address || ''; addrInput.readOnly = true; }
-  closeOrgPicker();
-}
-
-function selectOrgDirect() {
-  const orgInput  = document.getElementById('organization');
-  const addrInput = document.getElementById('company_address');
-  if (orgInput)  { orgInput.value = ''; orgInput.readOnly = false; orgInput.placeholder = '소속기관명 직접 입력'; orgInput.focus(); }
-  if (addrInput) { addrInput.value = ''; addrInput.readOnly = false; addrInput.placeholder = '회사 주소 직접 입력'; }
-  closeOrgPicker();
-}
-
-function closeOrgPicker() {
-  const el = document.getElementById('org-picker-overlay');
-  if (el) el.remove();
-}
-
-function closeOrgPickerOnBackdrop(e) {
-  if (e.target.id === 'org-picker-overlay') closeOrgPicker();
-}
-
-/* ══════════════════════════════════════════════════════════════
-   Nav: 세금계산서 업체
-══════════════════════════════════════════════════════════════ */
-function handleNavTaxCompany() {
-  document.querySelectorAll('.nav-item').forEach(el => {
-    el.classList.remove('active');
-    el.removeAttribute('aria-current');
-  });
-  const item = document.getElementById('nav-tax-company');
-  item.classList.add('active');
-  item.setAttribute('aria-current', 'page');
-  loadTaxCompanies();
-}
-
-document.getElementById('nav-tax-company').addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNavTaxCompany(); }
-});
-
-/* ══════════════════════════════════════════════════════════════
-   DB: 세금계산서 업체 목록 로드
-══════════════════════════════════════════════════════════════ */
-async function loadTaxCompanies() {
-  showSpinner();
-  try {
-    const { data, error } = await db
-      .from('tax_invoice_companies')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) throw error;
-    showTaxCompanyList(data || []);
-  } catch (err) {
-    showToast('업체 목록 로드 중 오류: ' + (err.message || ''), 'error');
-    showTaxCompanyList([]);
-  } finally {
-    hideSpinner();
-  }
-}
-
-/* ══════════════════════════════════════════════════════════════
-   VIEW: 세금계산서 업체 목록
-══════════════════════════════════════════════════════════════ */
-function showTaxCompanyList(companies) {
-  const rows = companies.length > 0
-    ? companies.map((c, i) => `
-      <tr ondblclick="openTaxModal('${c.id}')" style="cursor:pointer;" title="더블클릭하여 수정">
-        <td>${i + 1}</td>
-        <td>${esc(c.company_name)}</td>
-        <td>${esc(c.business_number || '—')}</td>
-        <td>${esc(c.ceo_name || '—')}</td>
-        <td>${esc(c.business_type || '—')}</td>
-        <td>${esc(c.address || '—')}</td>
-        <td class="action-cell">
-          <button class="btn-sm btn-edit" onclick="openTaxModal('${c.id}')">수정</button>
-          <button class="btn-sm btn-delete" onclick="deleteTaxCompany('${c.id}', '${esc(c.company_name)}')">삭제</button>
-        </td>
-      </tr>`).join('')
-    : `<tr><td colspan="7" class="empty-table">등록된 업체가 없습니다.</td></tr>`;
-
-  const html = `
-  <div class="content-card">
-    <div class="content-card-header">
-      <h2><i class="fa-solid fa-file-invoice" style="margin-right:8px;"></i>세금계산서 업체</h2>
-    </div>
-    <div class="content-card-body">
-      <div class="list-toolbar">
-        <button class="btn btn-primary" onclick="openTaxModal(null)">
-          <i class="fa-solid fa-plus"></i> 항목 추가
-        </button>
-      </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th style="width:48px;">No.</th>
-            <th>업체명 (상호)</th>
-            <th>사업자등록번호</th>
-            <th>대표자명</th>
-            <th>업태 / 종목</th>
-            <th>사업장 주소</th>
-            <th style="width:100px;">수정/삭제</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  </div>`;
-
-  document.getElementById('content-area').innerHTML = html;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   MODAL: 세금계산서 업체 추가 / 수정
-══════════════════════════════════════════════════════════════ */
-async function openTaxModal(id) {
-  let prefill = {};
-  if (id) {
-    showSpinner();
-    try {
-      const { data } = await db.from('tax_invoice_companies').select('*').eq('id', id).single();
-      if (data) prefill = data;
-    } finally {
-      hideSpinner();
-    }
-  }
-
-  const modalHtml = `
-  <div class="modal-overlay active" id="tax-modal-overlay" onclick="closeTaxModalOnBackdrop(event)">
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="modal-header">
-        <h3 id="modal-title">${id ? '업체 정보 수정' : '세금계산서 업체 추가'}</h3>
-        <button class="modal-close" onclick="closeTaxModal()" aria-label="닫기">&times;</button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="tax-id" value="${id || ''}">
-        <div class="modal-field">
-          <label>업체명 (상호)<span class="required">*</span></label>
-          <input class="form-input" type="text" id="tax-company-name" maxlength="100"
-                 placeholder="업체명 입력" value="${esc(prefill.company_name || '')}">
-        </div>
-        <div class="modal-field">
-          <label>사업자등록번호</label>
-          <input class="form-input" type="text" id="tax-business-number" maxlength="100"
-                 placeholder="000-00-00000" value="${esc(prefill.business_number || '')}">
-        </div>
-        <div class="modal-field">
-          <label>대표자명</label>
-          <input class="form-input" type="text" id="tax-ceo-name" maxlength="100"
-                 placeholder="대표자명" value="${esc(prefill.ceo_name || '')}">
-        </div>
-        <div class="modal-field">
-          <label>업태 / 종목</label>
-          <input class="form-input" type="text" id="tax-business-type" maxlength="100"
-                 placeholder="예) 서비스업 / 교육" value="${esc(prefill.business_type || '')}">
-        </div>
-        <div class="modal-field">
-          <label>사업장 주소</label>
-          <input class="form-input" type="text" id="tax-address" maxlength="100"
-                 placeholder="사업장 주소 입력" value="${esc(prefill.address || '')}">
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="closeTaxModal()">
+        <button class="btn btn-secondary" onclick="closeOrgSelect()">
           <i class="fa-solid fa-xmark"></i> 취소
         </button>
-        <button class="btn btn-success" onclick="saveTaxCompany()">
-          <i class="fa-solid fa-floppy-disk"></i> 저장
-        </button>
       </div>
     </div>
   </div>`;
-
-  document.body.insertAdjacentHTML('beforeend', modalHtml);
-  document.getElementById('tax-company-name').focus();
+  document.body.insertAdjacentHTML('beforeend', html);
 }
 
-function closeTaxModal() {
-  const overlay = document.getElementById('tax-modal-overlay');
-  if (overlay) overlay.remove();
+function closeOrgSelect() {
+  const el = document.getElementById('org-select-overlay');
+  if (el) el.remove();
+}
+function closeOrgSelectOnBackdrop(e) {
+  if (e.target.id === 'org-select-overlay' && _mousedownTarget === e.target) closeOrgSelect();
 }
 
-function closeTaxModalOnBackdrop(e) {
-  if (e.target.id === 'tax-modal-overlay') closeTaxModal();
+function selectOrgCompany(name, addr) {
+  const orgEl  = document.getElementById('f_org');
+  const addrEl = document.getElementById('f_office_addr');
+  if (orgEl)  orgEl.value  = name;
+  if (addrEl) addrEl.value = addr;
+  setOrgReadonly(true);
+  orgFromList = true;
+  closeOrgSelect();
+  showToast('업체가 선택되었습니다.', 'success');
+}
+
+function enableDirectOrgInput() {
+  setOrgReadonly(false);
+  orgFromList = false;
+  closeOrgSelect();
+  const orgEl = document.getElementById('f_org');
+  if (orgEl) { orgEl.value = ''; orgEl.focus(); }
+  const addrEl = document.getElementById('f_office_addr');
+  if (addrEl) addrEl.value = '';
+  showToast('직접 입력 모드로 전환되었습니다.', 'success');
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DB: 세금계산서 업체 저장 (추가 / 수정)
+   Edit / Cancel
 ══════════════════════════════════════════════════════════════ */
-async function saveTaxCompany() {
-  const name = document.getElementById('tax-company-name').value.trim();
-  if (!name) {
-    showToast('업체명은 필수 입력 항목입니다.', 'warning');
-    document.getElementById('tax-company-name').focus();
-    return;
-  }
+async function editInstructor() {
+  if (!currentInstructorId) { showForm(null); return; }
+  showSpinner();
+  try {
+    const data = await loadAllData(currentInstructorId);
+    if (data) showForm(data);
+    else showForm(null);
+  } finally { hideSpinner(); }
+}
 
-  const id = document.getElementById('tax-id').value;
-  const formData = {
-    company_name:    name,
-    business_number: document.getElementById('tax-business-number').value.trim(),
-    ceo_name:        document.getElementById('tax-ceo-name').value.trim(),
-    business_type:   document.getElementById('tax-business-type').value.trim(),
-    address:         document.getElementById('tax-address').value.trim(),
+async function cancelEdit() {
+  if (!currentInstructorId) { showForm(null); return; }
+  showSpinner();
+  try {
+    const data = await loadAllData(currentInstructorId);
+    if (data) showView(data); else showForm(null);
+  } finally { hideSpinner(); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Validation
+══════════════════════════════════════════════════════════════ */
+function validateForm() {
+  const required = [
+    ['f_name', '성명'],
+    ['f_type', '강사 유형'],
+    ['f_birth_year', '생년월일(년도)'],
+    ['f_birth_month', '생년월일(월)'],
+    ['f_birth_day', '생년월일(일)'],
+    ['f_gender', '성별'],
+    ['f_email', '이메일'],
+    ['f_mobile', '휴대전화'],
+    ['f_org', '소속'],
+    ['f_position', '직급'],
+    ['f_expertise', '전문 역량'],
+    ['f_lecture_field', '강의 분야'],
+  ];
+  for (const [id, label] of required) {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      showToast(`"${label}"은(는) 필수 입력 항목입니다.`, 'warning');
+      el && el.focus();
+      return false;
+    }
+  }
+  return true;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DB: Save Instructor
+══════════════════════════════════════════════════════════════ */
+async function saveInstructor() {
+  if (!validateForm()) return;
+
+  const mainData = {
+    instructor_name:  document.getElementById('f_name').value.trim(),
+    instructor_type:  document.getElementById('f_type').value,
+    birth_year:       document.getElementById('f_birth_year').value || null,
+    birth_month:      document.getElementById('f_birth_month').value || null,
+    birth_day:        document.getElementById('f_birth_day').value || null,
+    gender:           document.getElementById('f_gender').value,
+    email:            document.getElementById('f_email').value.trim(),
+    mobile_phone:     document.getElementById('f_mobile').value.trim(),
+    organization:     document.getElementById('f_org').value.trim(),
+    position:         document.getElementById('f_position').value.trim(),
+    office_phone:     document.getElementById('f_office_phone').value.trim(),
+    office_address:   document.getElementById('f_office_addr').value.trim(),
+    expertise:        document.getElementById('f_expertise').value.trim(),
+    lecture_field:    document.getElementById('f_lecture_field').value.trim(),
+    vendor:           document.getElementById('f_vendor')?.value || null,
+    profile_image_url: profileImageBase64 || null,
+    privacy_consent:  document.getElementById('f_privacy').checked,
+    updated_at:       new Date().toISOString(),
   };
+
+  const homepages  = collectRows('homepage-body',  ['hp_name','hp_url']);
+  const educations = collectRows('education-body', ['edu_type','school_name','department','major']);
+  const careers    = collectRows('career-body',    ['career_type','company_name','start_year','start_month','end_year','end_month']);
+  const lectures   = collectRows('lecture-body',   ['company_name','topic']);
 
   showSpinner();
   try {
-    let result;
-    if (id) {
-      result = await db.from('tax_invoice_companies').update(formData).eq('id', id).select().single();
+    let instrId = currentInstructorId;
+    if (instrId) {
+      const { error } = await db.from('instructors').update(mainData).eq('id', instrId);
+      if (error) throw error;
     } else {
-      result = await db.from('tax_invoice_companies').insert(formData).select().single();
+      const { data, error } = await db.from('instructors').insert(mainData).select('id').single();
+      if (error) throw error;
+      instrId = data.id;
+      localStorage.setItem('instructor_id', instrId);
+      currentInstructorId = instrId;
     }
-    if (result.error) throw result.error;
-    showToast(id ? '업체 정보가 수정되었습니다.' : '업체가 추가되었습니다.', 'success');
-    closeTaxModal();
-    await loadTaxCompanies();
+
+    // 자식 테이블 삭제 후 재삽입
+    await Promise.all([
+      db.from('instructor_homepages').delete().eq('instructor_id', instrId),
+      db.from('instructor_educations').delete().eq('instructor_id', instrId),
+      db.from('instructor_attachments').delete().eq('instructor_id', instrId),
+      db.from('instructor_careers').delete().eq('instructor_id', instrId),
+      db.from('instructor_lecture_records').delete().eq('instructor_id', instrId),
+    ]);
+
+    const insertAll = [];
+    if (homepages.length > 0)
+      insertAll.push(db.from('instructor_homepages').insert(homepages.map((r,i)=>({...r, instructor_id:instrId, sort_order:i}))));
+    if (educations.length > 0)
+      insertAll.push(db.from('instructor_educations').insert(educations.map((r,i)=>({...r, instructor_id:instrId, sort_order:i}))));
+    if (attachmentState.length > 0)
+      insertAll.push(db.from('instructor_attachments').insert(attachmentState.map((r,i)=>({ file_name:r.file_name, file_size:r.file_size, instructor_id:instrId, sort_order:i }))));
+    if (careers.length > 0)
+      insertAll.push(db.from('instructor_careers').insert(careers.map((r,i)=>({...r, instructor_id:instrId, sort_order:i}))));
+    if (lectures.length > 0)
+      insertAll.push(db.from('instructor_lecture_records').insert(lectures.map((r,i)=>({...r, instructor_id:instrId, sort_order:i}))));
+
+    await Promise.all(insertAll);
+
+    showToast('강사 정보가 저장되었습니다.', 'success');
+    const data = await loadAllData(instrId);
+    if (data) showView(data);
   } catch (err) {
     showToast('저장 중 오류: ' + (err.message || ''), 'error');
   } finally {
@@ -1891,29 +1367,669 @@ async function saveTaxCompany() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DB: 세금계산서 업체 삭제
+   Nav: 업체 벤더
 ══════════════════════════════════════════════════════════════ */
+function handleNavTaxCompany() {
+  setActiveNav('nav-tax-company');
+  loadTaxCompanies();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DB: 업체 벤더 목록
+══════════════════════════════════════════════════════════════ */
+async function loadTaxCompanies() {
+  showSpinner();
+  try {
+    const { data, error } = await db.from('tax_invoice_companies').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    showTaxCompanyList(data || []);
+  } catch (err) {
+    showToast('업체 목록 로드 중 오류: ' + (err.message || ''), 'error');
+    showTaxCompanyList([]);
+  } finally { hideSpinner(); }
+}
+
+function showTaxCompanyList(companies) {
+  const rows = companies.length > 0
+    ? companies.map((c,i) => `
+      <tr ondblclick="openTaxModal('${c.id}')" style="cursor:pointer;" title="더블클릭 수정">
+        <td>${i+1}</td>
+        <td>${esc(c.company_name)}</td>
+        <td>${esc(c.business_number||'—')}</td>
+        <td>${esc(c.ceo_name||'—')}</td>
+        <td>${esc(c.business_type||'—')}</td>
+        <td>${esc(c.address||'—')}</td>
+        <td>${esc(c.vendor||'—')}</td>
+        <td class="action-cell">
+          <button class="btn-edit btn-sm" onclick="openTaxModal('${c.id}')">수정</button>
+          <button class="btn-delete btn-sm" onclick="deleteTaxCompany('${c.id}','${esc(c.company_name)}')">삭제</button>
+        </td>
+      </tr>`).join('')
+    : `<tr><td colspan="8" class="empty-table">등록된 업체가 없습니다.</td></tr>`;
+
+  const html = `
+  <div class="content-card">
+    <div class="content-card-header">
+      <h2><i class="fa-solid fa-file-invoice" style="margin-right:8px;"></i>업체 벤더</h2>
+    </div>
+    <div class="list-toolbar">
+      <button class="btn btn-primary" onclick="openTaxModal(null)"><i class="fa-solid fa-plus"></i> 항목 추가</button>
+    </div>
+    <table class="data-table">
+      <thead><tr>
+        <th style="width:44px;">No.</th><th>업체명(상호)</th><th>사업자등록번호</th>
+        <th>대표자명</th><th>업태/종목</th><th>사업장주소</th><th>Vendor</th>
+        <th style="width:100px;">수정/삭제</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+  document.getElementById('content-area').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Tax Modal
+══════════════════════════════════════════════════════════════ */
+async function openTaxModal(id) {
+  let prefill = {};
+  if (id) {
+    showSpinner();
+    try { const { data } = await db.from('tax_invoice_companies').select('*').eq('id', id).single(); if (data) prefill = data; }
+    finally { hideSpinner(); }
+  }
+  const html = `
+  <div class="modal-overlay active" id="tax-modal-overlay" onclick="closeTaxOnBackdrop(event)">
+    <div class="modal" role="dialog">
+      <div class="modal-header">
+        <h3>${id?'업체 벤더 수정':'업체 벤더 추가'}</h3>
+        <button class="modal-close" onclick="closeTaxModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="tax-id" value="${id||''}">
+        <div class="modal-field"><label>업체명(상호)<span class="req">*</span></label>
+          <input class="form-input" id="tx-name" maxlength="100" placeholder="업체명" value="${esc(prefill.company_name||'')}"></div>
+        <div class="modal-field"><label>사업자등록번호</label>
+          <input class="form-input" id="tx-biz" maxlength="100" placeholder="000-00-00000" value="${esc(prefill.business_number||'')}"></div>
+        <div class="modal-field"><label>대표자명</label>
+          <input class="form-input" id="tx-ceo" maxlength="100" placeholder="대표자명" value="${esc(prefill.ceo_name||'')}"></div>
+        <div class="modal-field"><label>업태/종목</label>
+          <input class="form-input" id="tx-type" maxlength="100" placeholder="서비스업/교육" value="${esc(prefill.business_type||'')}"></div>
+        <div class="modal-field"><label>사업장 주소</label>
+          <input class="form-input" id="tx-addr" maxlength="100" placeholder="사업장 주소" value="${esc(prefill.address||'')}"></div>
+        <div class="modal-field"><label>Vendor</label>
+          <input class="form-input" id="tx-vendor" maxlength="20" placeholder="Vendor" value="${esc(prefill.vendor||'')}"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeTaxModal()"><i class="fa-solid fa-xmark"></i> 취소</button>
+        <button class="btn btn-success" style="padding:8px 28px;" onclick="saveTaxCompany()"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  document.getElementById('tx-name').focus();
+}
+function closeTaxModal() { const el = document.getElementById('tax-modal-overlay'); if (el) el.remove(); }
+function closeTaxOnBackdrop(e) { if (e.target.id === 'tax-modal-overlay' && _mousedownTarget === e.target) closeTaxModal(); }
+
+async function saveTaxCompany() {
+  const name = document.getElementById('tx-name').value.trim();
+  if (!name) { showToast('업체명은 필수 입력 항목입니다.', 'warning'); return; }
+  const id = document.getElementById('tax-id').value;
+  const data = {
+    company_name:    name,
+    business_number: document.getElementById('tx-biz').value.trim(),
+    ceo_name:        document.getElementById('tx-ceo').value.trim(),
+    business_type:   document.getElementById('tx-type').value.trim(),
+    address:         document.getElementById('tx-addr').value.trim(),
+    vendor:          document.getElementById('tx-vendor').value.trim(),
+  };
+  showSpinner();
+  try {
+    const res = id
+      ? await db.from('tax_invoice_companies').update(data).eq('id', id).select().single()
+      : await db.from('tax_invoice_companies').insert(data).select().single();
+    if (res.error) throw res.error;
+    showToast(id ? '수정되었습니다.' : '추가되었습니다.', 'success');
+    closeTaxModal();
+    await loadTaxCompanies();
+  } catch (err) { showToast('저장 오류: ' + (err.message || ''), 'error'); }
+  finally { hideSpinner(); }
+}
+
 async function deleteTaxCompany(id, name) {
   if (!confirm(`"${name}" 업체를 삭제하시겠습니까?`)) return;
   showSpinner();
   try {
     const { error } = await db.from('tax_invoice_companies').delete().eq('id', id);
     if (error) throw error;
-    showToast('업체가 삭제되었습니다.', 'success');
+    showToast('삭제되었습니다.', 'success');
     await loadTaxCompanies();
-  } catch (err) {
-    showToast('삭제 중 오류: ' + (err.message || ''), 'error');
-  } finally {
-    hideSpinner();
-  }
+  } catch (err) { showToast('삭제 오류: ' + (err.message || ''), 'error'); }
+  finally { hideSpinner(); }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   Init on Page Load
+   Auth
 ══════════════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-  loadInstructor();
+async function doLogout() {
+  currentUser = null;
+  currentInstructorId = null;
+  // UI를 즉시 전환 (SIGNED_OUT 이벤트 도착 전에도 확실히 처리)
+  document.getElementById('app').style.display = 'none';
+  const authEl = document.getElementById('auth-container');
+  if (authEl) {
+    authEl.style.display = 'flex';
+    const emailEl  = document.getElementById('login-email');
+    const pwdEl    = document.getElementById('login-password');
+    if (emailEl) emailEl.value = '';
+    if (pwdEl)   pwdEl.value   = '';
+  }
+  await window._signOut?.();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Helpers
+══════════════════════════════════════════════════════════════ */
+function generateTempPassword() {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from({length: 8}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+}
+function generateToken() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Nav: 강사정보 등록요청
+══════════════════════════════════════════════════════════════ */
+function handleNavInstrRequest() {
+  setActiveNav('nav-instr-request');
+  loadInstrRequests();
+}
+
+async function loadInstrRequests() {
+  showSpinner();
+  try {
+    const { data, error } = await db.from('instructor_requests').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    showInstrRequestList(data || []);
+  } catch (err) {
+    showToast('목록 로드 중 오류: ' + (err.message || ''), 'error');
+    showInstrRequestList([]);
+  } finally { hideSpinner(); }
+}
+
+function showInstrRequestList(items) {
+  selectedRequestId = null;
+  const rows = items.length > 0
+    ? items.map((v, i) => `
+      <tr id="req-row-${v.id}">
+        <td style="text-align:center;">
+          <input type="radio" name="req-radio" value="${v.id}"
+            onchange="selectReqRow('${v.id}')"
+            style="width:22px;height:22px;cursor:pointer;accent-color:#667eea;">
+        </td>
+        <td>${esc(v.full_name || '—')}</td>
+        <td>${esc(v.mobile || '—')}</td>
+        <td>${esc(v.email || '—')}</td>
+        <td>${esc(v.birth_date || '—')}</td>
+        <td style="text-align:center;">${v.is_requested
+          ? '<span class="badge-requested">요청완료</span>'
+          : '<span class="badge-pending">미요청</span>'}</td>
+        <td class="action-cell">
+          <button class="btn-edit btn-sm" onclick="openInstrRequestModal('${v.id}')">수정</button>
+          <button class="btn-delete btn-sm" onclick="deleteInstrRequest('${v.id}','${esc(v.full_name||'')}')">삭제</button>
+        </td>
+      </tr>`).join('')
+    : `<tr><td colspan="7" class="empty-table">등록된 요청이 없습니다.</td></tr>`;
+
+  document.getElementById('content-area').innerHTML = `
+  <div class="content-card">
+    <div class="content-card-header">
+      <h2><i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i>강사정보 등록요청</h2>
+    </div>
+    <div class="list-toolbar" style="display:flex;gap:8px;">
+      <button class="btn btn-primary" onclick="openInstrRequestModal(null)">
+        <i class="fa-solid fa-plus"></i> 항목 추가</button>
+      <button class="btn btn-success" style="white-space:nowrap;" onclick="openRegRequestPopup()">
+        <i class="fa-solid fa-paper-plane"></i> 요청 메일 발송</button>
+    </div>
+    <table class="data-table">
+      <thead><tr>
+        <th style="width:44px;">선택</th>
+        <th>성명</th><th>핸드폰</th><th>이메일</th><th>생년월일</th>
+        <th style="width:90px;">상태</th>
+        <th style="width:100px;">수정/삭제</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function selectReqRow(id) {
+  // 이전 하이라이트 제거
+  document.querySelectorAll('tr.row-selected').forEach(r => r.classList.remove('row-selected'));
+  selectedRequestId = id;
+  const row = document.getElementById('req-row-' + id);
+  if (row) row.classList.add('row-selected');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   강사정보 등록요청 Modal (추가/수정)
+══════════════════════════════════════════════════════════════ */
+async function openInstrRequestModal(id) {
+  let p = {};
+  if (id) {
+    showSpinner();
+    try { const { data } = await db.from('instructor_requests').select('*').eq('id', id).single(); if (data) p = data; }
+    finally { hideSpinner(); }
+  }
+  document.body.insertAdjacentHTML('beforeend', `
+  <div class="modal-overlay active" id="ir-modal-overlay" onclick="closeIROnBackdrop(event)">
+    <div class="modal" role="dialog">
+      <div class="modal-header">
+        <h3>${id ? '등록요청 수정' : '등록요청 추가'}</h3>
+        <button class="modal-close" onclick="closeIRModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="ir-id" value="${id || ''}">
+        <div class="modal-field"><label>성명<span class="req">*</span></label>
+          <input class="form-input" id="ir-name" maxlength="100" placeholder="성명" value="${esc(p.full_name||'')}"></div>
+        <div class="modal-field"><label>핸드폰</label>
+          <input class="form-input" id="ir-mobile" maxlength="100" placeholder="010-0000-0000" value="${esc(p.mobile||'')}"></div>
+        <div class="modal-field"><label>이메일</label>
+          <input class="form-input" id="ir-email" maxlength="100" placeholder="example@email.com" value="${esc(p.email||'')}"></div>
+        <div class="modal-field"><label>생년월일</label>
+          <input class="form-input" id="ir-birth" maxlength="20" placeholder="YYYYMMDD" value="${esc(p.birth_date||'')}"></div>
+        <div class="modal-field"><label>상태</label>
+          <select class="form-select" id="ir-status">
+            <option value="false" ${!p.is_requested ? 'selected' : ''}>미요청</option>
+            <option value="true"  ${p.is_requested  ? 'selected' : ''}>요청완료</option>
+          </select></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeIRModal()"><i class="fa-solid fa-xmark"></i> 취소</button>
+        <button class="btn btn-success" style="padding:8px 28px;" onclick="saveInstrRequest()"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
+      </div>
+    </div>
+  </div>`);
+  document.getElementById('ir-name').focus();
+}
+function closeIRModal() { const el = document.getElementById('ir-modal-overlay'); if (el) el.remove(); }
+function closeIROnBackdrop(e) { if (e.target.id === 'ir-modal-overlay' && _mousedownTarget === e.target) closeIRModal(); }
+
+async function saveInstrRequest() {
+  const name = document.getElementById('ir-name').value.trim();
+  if (!name) { showToast('성명은 필수 입력 항목입니다.', 'warning'); return; }
+  const id   = document.getElementById('ir-id').value;
+  const data = {
+    full_name:    name,
+    mobile:       document.getElementById('ir-mobile').value.trim(),
+    email:        document.getElementById('ir-email').value.trim(),
+    birth_date:   document.getElementById('ir-birth').value.trim(),
+    is_requested: document.getElementById('ir-status').value === 'true',
+  };
+  showSpinner();
+  try {
+    const res = id
+      ? await db.from('instructor_requests').update(data).eq('id', id).select().single()
+      : await db.from('instructor_requests').insert(data).select().single();
+    if (res.error) throw res.error;
+    showToast(id ? '수정되었습니다.' : '추가되었습니다.', 'success');
+    closeIRModal();
+    await loadInstrRequests();
+  } catch (err) { showToast('저장 오류: ' + (err.message || ''), 'error'); }
+  finally { hideSpinner(); }
+}
+
+async function deleteInstrRequest(id, name) {
+  if (!confirm(`"${name}" 항목을 삭제하시겠습니까?`)) return;
+  showSpinner();
+  try {
+    const { error } = await db.from('instructor_requests').delete().eq('id', id);
+    if (error) throw error;
+    showToast('삭제되었습니다.', 'success');
+    await loadInstrRequests();
+  } catch (err) { showToast('삭제 오류: ' + (err.message || ''), 'error'); }
+  finally { hideSpinner(); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   등록 요청 팝업
+══════════════════════════════════════════════════════════════ */
+async function openRegRequestPopup() {
+  if (!selectedRequestId) { showToast('등록 요청할 항목을 선택해 주세요.', 'warning'); return; }
+
+  showSpinner();
+  let rec;
+  try {
+    const { data, error } = await db.from('instructor_requests').select('*').eq('id', selectedRequestId).single();
+    if (error || !data) throw new Error('항목 조회 실패');
+    rec = data;
+  } catch (err) { showToast(err.message, 'error'); hideSpinner(); return; }
+
+  // 임시 비밀번호 및 토큰 생성
+  const tempPw    = generateTempPassword();
+  const token     = generateToken();
+  const appUrl    = window.location.href.split('?')[0];
+
+  // Supabase Auth 계정 생성 (임시 비밀번호, 최초 로그인 시 비밀번호 변경 강제)
+  try {
+    const tmpClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { storageKey: 'ir_tmp_' + Date.now(), persistSession: false, autoRefreshToken: false },
+    });
+    const { data: signUpData, error: signUpError } = await tmpClient.auth.signUp({
+      email: rec.email,
+      password: tempPw,
+      options: { data: { force_password_change: true } },
+    });
+    if (signUpError) throw new Error(signUpError.message);
+    // signUpData.user === null 이면 기존 계정 존재 → 패스워드 갱신 불가
+    if (!signUpData?.user) {
+      hideSpinner();
+      showToast('이미 등록된 계정입니다. Supabase 대시보드에서 비밀번호를 직접 초기화해 주세요.', 'warning');
+      return;
+    }
+    // email_confirmed_at 이 null 이면 이메일 인증 설정이 ON → 강사가 바로 로그인 불가
+    if (!signUpData.user.email_confirmed_at) {
+      hideSpinner();
+      showToast(
+        '⚠️ Supabase 이메일 인증이 활성화되어 있어 강사가 즉시 로그인할 수 없습니다.\n' +
+        'Supabase 대시보드 → Authentication → Providers → Email → "Confirm email" 을 OFF로 변경하세요.\n' +
+        '변경 후 방금 생성된 계정(Authentication → Users)을 삭제하고 다시 시도하세요.',
+        'error',
+        8000
+      );
+      return;
+    }
+    // instructor_requests 갱신
+    await db.from('instructor_requests').update({
+      temp_password: tempPw,
+      login_token:   token,
+    }).eq('id', selectedRequestId);
+  } catch (err) { showToast('계정 처리 오류: ' + (err.message || ''), 'error'); hideSpinner(); return; }
+  finally { hideSpinner(); }
+
+  const emailBody =
+`안녕하세요. DS부문 사외강사 담당자입니다.
+
+아래 URL 링크로 접속하셔서 사외 강사 정보를 등록해 주시기 바랍니다.
+
+  • 접속 URL      : ${appUrl}
+  • 접속 계정    : ${rec.email}
+  • 임시 비밀번호 : ${tempPw}
+
+※ 최초 로그인 시 비밀번호 변경이 필요합니다.
+
+감사합니다.`;
+
+  const subject = encodeURIComponent('사외 강사 정보 등록 안내 메일');
+  const body    = encodeURIComponent(emailBody);
+  const mailto  = `mailto:${rec.email}?subject=${subject}&body=${body}`;
+
+  document.body.insertAdjacentHTML('beforeend', `
+  <div class="modal-overlay active" id="rr-modal-overlay" onclick="closeRROnBackdrop(event)">
+    <div class="modal" style="max-width:1440px;width:95vw;border-radius:16px;overflow:hidden;" role="dialog">
+      <div class="modal-header" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:22px 36px;">
+        <h3 style="color:#fff;font-size:19px;font-weight:700;display:flex;align-items:center;gap:10px;">
+          <i class="fa-solid fa-envelope-open-text" style="font-size:21px;"></i>강사정보 등록 안내 메일
+        </h3>
+        <button class="modal-close" onclick="closeRRModal()" style="color:#fff;opacity:0.85;font-size:22px;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:28px 36px 18px;">
+        <div style="background:#f8f9ff;border:1px solid #e0e3f0;border-radius:10px;padding:16px 22px;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="font-size:14px;color:#888;min-width:40px;">수신</span>
+            <span style="font-size:14px;color:#222;font-weight:700;">${esc(rec.email)}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:14px;color:#888;min-width:40px;">제목</span>
+            <span style="font-size:14px;color:#222;font-weight:700;">사외 강사 정보 등록 안내 메일</span>
+          </div>
+        </div>
+        <div class="email-preview" style="font-size:15px;line-height:1.9;padding:24px 28px;white-space:normal;">
+          <p>안녕하세요. DS부문 사외강사 담당자입니다.</p>
+          <p>아래 URL 링크로 접속하셔서 사외 강사 정보를 등록해 주시기 바랍니다.</p>
+          <table class="email-info-table">
+            <tr>
+              <td class="lbl">접속 URL</td>
+              <td class="sep">:</td>
+              <td class="val">${esc(appUrl)}</td>
+            </tr>
+            <tr>
+              <td class="lbl">접속 계정</td>
+              <td class="sep">:</td>
+              <td class="val">${esc(rec.email)}</td>
+            </tr>
+            <tr>
+              <td class="lbl">임시 비밀번호</td>
+              <td class="sep">:</td>
+              <td class="val">${esc(tempPw)}</td>
+            </tr>
+          </table>
+          <p style="margin-top:12px;font-size:14px;color:#2563eb;">※ 최초 로그인 시 비밀번호 변경이 필요합니다.</p>
+          <p>감사합니다.</p>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:18px 36px 24px;gap:10px;">
+        <button class="btn btn-secondary" style="padding:10px 28px;font-size:14px;" onclick="closeRRModal()">
+          <i class="fa-solid fa-xmark"></i> 닫기</button>
+        <button class="btn btn-success" style="padding:10px 36px;font-size:14px;font-weight:700;"
+          onclick="sendRegRequest('${selectedRequestId}','${mailto.replace(/'/g,'\\\'')}')" >
+          <i class="fa-solid fa-paper-plane"></i> 메일 발송
+        </button>
+      </div>
+    </div>
+  </div>`);
+}
+
+async function sendRegRequest(id, mailto) {
+  showSpinner();
+  try {
+    await db.from('instructor_requests').update({
+      is_requested: true,
+      requested_at: new Date().toISOString(),
+    }).eq('id', id);
+    showToast('등록 요청이 완료되었습니다.', 'success');
+  } catch (err) { showToast('상태 업데이트 오류: ' + (err.message || ''), 'error'); }
+  finally { hideSpinner(); }
+  window.location.href = mailto;
+  closeRRModal();
+  await loadInstrRequests();
+}
+
+function closeRRModal()           { const el = document.getElementById('rr-modal-overlay'); if (el) el.remove(); }
+function closeRROnBackdrop(e)     { if (e.target.id === 'rr-modal-overlay' && _mousedownTarget === e.target) closeRRModal(); }
+
+/* ══════════════════════════════════════════════════════════════
+   Nav: 개인 벤더
+══════════════════════════════════════════════════════════════ */
+function handleNavPersonalVendor() {
+  setActiveNav('nav-personal-vendor');
+  loadPersonalVendors();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DB: 개인 벤더 목록
+══════════════════════════════════════════════════════════════ */
+async function loadPersonalVendors() {
+  showSpinner();
+  try {
+    const { data, error } = await db.from('personal_vendors').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    showPersonalVendorList(data || []);
+  } catch (err) {
+    showToast('개인 벤더 목록 로드 중 오류: ' + (err.message || ''), 'error');
+    showPersonalVendorList([]);
+  } finally { hideSpinner(); }
+}
+
+function showPersonalVendorList(items) {
+  const rows = items.length > 0
+    ? items.map((v, i) => `
+      <tr ondblclick="openPersonalVendorModal('${v.id}')" style="cursor:pointer;" title="더블클릭 수정">
+        <td>${i + 1}</td>
+        <td>${esc(v.full_name || '—')}</td>
+        <td>${esc(v.email || '—')}</td>
+        <td>${esc(v.birth_date || '—')}</td>
+        <td>${esc(v.vendor || '—')}</td>
+        <td>${esc(v.vendor_status || '—')}</td>
+        <td class="action-cell">
+          <button class="btn-edit btn-sm" onclick="openPersonalVendorModal('${v.id}')">수정</button>
+          <button class="btn-delete btn-sm" onclick="deletePersonalVendor('${v.id}','${esc(v.full_name||'')}')">삭제</button>
+        </td>
+      </tr>`).join('')
+    : `<tr><td colspan="7" class="empty-table">등록된 개인 벤더가 없습니다.</td></tr>`;
+
+  const html = `
+  <div class="content-card">
+    <div class="content-card-header">
+      <h2><i class="fa-solid fa-user-tag" style="margin-right:8px;"></i>개인 벤더</h2>
+    </div>
+    <div class="list-toolbar">
+      <button class="btn btn-primary" onclick="openPersonalVendorModal(null)"><i class="fa-solid fa-plus"></i> 항목 추가</button>
+    </div>
+    <table class="data-table">
+      <thead><tr>
+        <th style="width:44px;">No.</th>
+        <th>성명</th>
+        <th>이메일</th>
+        <th>생년월일</th>
+        <th>Vendor</th>
+        <th>벤더 진행 상태</th>
+        <th style="width:100px;">수정/삭제</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+  document.getElementById('content-area').innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Personal Vendor Modal
+══════════════════════════════════════════════════════════════ */
+async function openPersonalVendorModal(id) {
+  let prefill = {};
+  if (id) {
+    showSpinner();
+    try {
+      const { data } = await db.from('personal_vendors').select('*').eq('id', id).single();
+      if (data) prefill = data;
+    } finally { hideSpinner(); }
+  }
+  const html = `
+  <div class="modal-overlay active" id="pv-modal-overlay" onclick="closePVOnBackdrop(event)">
+    <div class="modal" role="dialog">
+      <div class="modal-header">
+        <h3>${id ? '개인 벤더 수정' : '개인 벤더 추가'}</h3>
+        <button class="modal-close" onclick="closePVModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="pv-id" value="${id || ''}">
+        <div class="modal-field"><label>성명<span class="req">*</span></label>
+          <input class="form-input" id="pv-name" maxlength="100" placeholder="성명" value="${esc(prefill.full_name || '')}"></div>
+        <div class="modal-field"><label>이메일</label>
+          <input class="form-input" id="pv-email" maxlength="100" placeholder="example@email.com" value="${esc(prefill.email || '')}"></div>
+        <div class="modal-field"><label>생년월일</label>
+          <input class="form-input" id="pv-birth" maxlength="20" placeholder="YYYYMMDD" value="${esc(prefill.birth_date || '')}"></div>
+        <div class="modal-field"><label>Vendor</label>
+          <input class="form-input" id="pv-vendor" maxlength="20" placeholder="Vendor" value="${esc(prefill.vendor || '')}"></div>
+        <div class="modal-field"><label>벤더 진행 상태</label>
+          <input class="form-input" id="pv-vendor-status" maxlength="20" placeholder="벤더 진행 상태" value="${esc(prefill.vendor_status || '')}"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closePVModal()"><i class="fa-solid fa-xmark"></i> 취소</button>
+        <button class="btn btn-success" style="padding:8px 28px;" onclick="savePersonalVendor()"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  document.getElementById('pv-name').focus();
+}
+
+function closePVModal() { const el = document.getElementById('pv-modal-overlay'); if (el) el.remove(); }
+function closePVOnBackdrop(e) { if (e.target.id === 'pv-modal-overlay' && _mousedownTarget === e.target) closePVModal(); }
+
+async function savePersonalVendor() {
+  const name = document.getElementById('pv-name').value.trim();
+  if (!name) { showToast('성명은 필수 입력 항목입니다.', 'warning'); return; }
+  const id = document.getElementById('pv-id').value;
+  const data = {
+    full_name:     name,
+    email:         document.getElementById('pv-email').value.trim(),
+    birth_date:    document.getElementById('pv-birth').value.trim(),
+    vendor:        document.getElementById('pv-vendor').value.trim(),
+    vendor_status: document.getElementById('pv-vendor-status').value.trim(),
+  };
+  showSpinner();
+  try {
+    const res = id
+      ? await db.from('personal_vendors').update(data).eq('id', id).select().single()
+      : await db.from('personal_vendors').insert(data).select().single();
+    if (res.error) throw res.error;
+    showToast(id ? '수정되었습니다.' : '추가되었습니다.', 'success');
+    closePVModal();
+    await loadPersonalVendors();
+  } catch (err) { showToast('저장 오류: ' + (err.message || ''), 'error'); }
+  finally { hideSpinner(); }
+}
+
+async function deletePersonalVendor(id, name) {
+  if (!confirm(`"${name}" 개인 벤더를 삭제하시겠습니까?`)) return;
+  showSpinner();
+  try {
+    const { error } = await db.from('personal_vendors').delete().eq('id', id);
+    if (error) throw error;
+    showToast('삭제되었습니다.', 'success');
+    await loadPersonalVendors();
+  } catch (err) { showToast('삭제 오류: ' + (err.message || ''), 'error'); }
+  finally { hideSpinner(); }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Init
+══════════════════════════════════════════════════════════════ */
+document.addEventListener('mousedown', e => { _mousedownTarget = e.target; });
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // 1회성 URL 토큰 처리
+  const token = new URLSearchParams(window.location.search).get('token');
+  if (token) {
+    try {
+      const { data } = await db.from('instructor_requests')
+        .select('email, temp_password').eq('login_token', token).maybeSingle();
+      if (data) {
+        document.getElementById('login-email').value    = data.email || '';
+        document.getElementById('login-password').value = data.temp_password || '';
+        showToast('임시 계정이 입력되었습니다. 로그인 후 정보를 등록해 주세요.', 'info');
+      }
+    } catch (_) {}
+  }
 });
+</script>
+
+<script type="module">
+import { initAuth } from './auth/auth.js';
+
+const { signOut } = await initAuth({
+  supabaseUrl: 'https://mcshhvttsvfurrkpcbdf.supabase.co',
+  supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jc2hodnR0c3ZmdXJya3BjYmRmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODI5MDgsImV4cCI6MjA4OTU1ODkwOH0.FRlSXHknfnYoZ4i4-_up8QvppoKHGo50koK9yDkXPUQ',
+  onLogin(user) {
+    window.currentUser = user;
+    document.getElementById('current-user-email').textContent = user.email || '';
+    document.getElementById('app').style.display = 'grid';
+    handleNavRegister();
+  },
+  onLogout() {
+    window.currentUser = null;
+    window.currentInstructorId = null;
+    document.getElementById('app').style.display = 'none';
+  },
+});
+
+window._signOut = signOut;
 </script>
 </body>
 </html>
